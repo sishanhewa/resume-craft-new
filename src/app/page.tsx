@@ -50,13 +50,15 @@ export default function Home() {
             No design skills required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              size="lg"
-              className="rounded-full px-8 h-14 text-base bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/25"
-            >
-              Start Building
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            <Link href="/create-resume">
+              <Button
+                size="lg"
+                className="rounded-full px-8 h-14 text-base bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-lg shadow-blue-500/25"
+              >
+                Start Building
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
             <Button
               size="lg"
               variant="outline"
