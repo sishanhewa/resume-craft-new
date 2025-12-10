@@ -8,54 +8,84 @@ export type ResumeData = {
 };
 
 export type ResumeContent = {
-  personalInfo: PersonalInfo;
-  education: Education[];
+  header: HeaderInfo;
+  contact: ContactInfo;
+  profile: string;
+  skills: string[];
+  languages: Language[];
   experience: Experience[];
-  skills: Skill[];
+  education: Education[];
+  reference?: Reference;
 };
 
-export type PersonalInfo = {
-  firstName: string;
-  lastName: string;
-  email: string;
+export type HeaderInfo = {
+  fullName: string;
+  jobTitle: string;
+  photoUrl?: string;
+};
+
+export type ContactInfo = {
   phone: string;
+  email: string;
   address: string;
-  city: string;
-  country: string;
-  linkedin?: string;
   website?: string;
-  summary?: string;
 };
 
-export type Education = {
+export type Language = {
   id: string;
-  institution: string;
-  degree: string;
-  field: string;
-  startDate: string;
-  endDate: string;
-  current: boolean;
-  description?: string;
+  name: string;
+  proficiency: "Basic" | "Intermediate" | "Fluent" | "Native";
 };
 
 export type Experience = {
   id: string;
   company: string;
   position: string;
-  location: string;
   startDate: string;
   endDate: string;
   current: boolean;
-  description: string;
+  description: string[];
 };
 
-export type Skill = {
+export type Education = {
   id: string;
+  degree: string;
+  institution: string;
+  startYear: string;
+  endYear: string;
+  gpa?: string;
+};
+
+export type Reference = {
   name: string;
-  level: "beginner" | "intermediate" | "advanced" | "expert";
+  role: string;
+  company: string;
+  phone: string;
+  email: string;
 };
 
 export type ResumeTheme = {
   accentColor: string;
   fontFamily: string;
 };
+
+// Helper to create empty resume content
+export const createEmptyResumeContent = (): ResumeContent => ({
+  header: {
+    fullName: "",
+    jobTitle: "",
+    photoUrl: "",
+  },
+  contact: {
+    phone: "",
+    email: "",
+    address: "",
+    website: "",
+  },
+  profile: "",
+  skills: [],
+  languages: [],
+  experience: [],
+  education: [],
+  reference: undefined,
+});
