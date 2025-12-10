@@ -7,7 +7,7 @@ interface SidebarProps {
 
 export function Sidebar({ data }: SidebarProps) {
     return (
-        <div className="w-[280px] bg-[#2c3e50] text-white flex-shrink-0">
+        <div className="w-[280px] bg-[#2c3e50] text-white flex-shrink-0 self-stretch">
             {/* Header with Photo */}
             <div className="bg-[#34495e] px-6 pt-8 pb-6 text-center">
                 {/* Profile Photo */}
@@ -129,6 +129,66 @@ export function Sidebar({ data }: SidebarProps) {
                                 </p>
                             )}
                         </div>
+                    </section>
+                )}
+
+                {/* Certifications */}
+                {data.certifications && data.certifications.length > 0 && (
+                    <section>
+                        <SectionHeader title="Certifications" />
+                        <ul className="mt-4 space-y-2">
+                            {data.certifications.map((cert) => (
+                                <li key={cert.id} className="text-sm">
+                                    <p className="font-medium">{cert.name}</p>
+                                    <p className="text-zinc-400 text-xs">{cert.issuer} • {cert.date}</p>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+
+                {/* Awards */}
+                {data.awards && data.awards.length > 0 && (
+                    <section>
+                        <SectionHeader title="Awards" />
+                        <ul className="mt-4 space-y-2">
+                            {data.awards.map((award) => (
+                                <li key={award.id} className="text-sm">
+                                    <p className="font-medium">{award.title}</p>
+                                    <p className="text-zinc-400 text-xs">{award.issuer} • {award.date}</p>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+
+                {/* Interests */}
+                {data.interests && data.interests.length > 0 && (
+                    <section>
+                        <SectionHeader title="Interests" />
+                        <ul className="mt-4 space-y-2">
+                            {data.interests.filter(Boolean).map((interest, index) => (
+                                <li key={index} className="flex items-start gap-2 text-sm">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-white/60 mt-1.5 flex-shrink-0" />
+                                    <span>{interest}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+
+                {/* Portfolio Links */}
+                {data.portfolio && data.portfolio.length > 0 && (
+                    <section>
+                        <SectionHeader title="Portfolio" />
+                        <ul className="mt-4 space-y-2">
+                            {data.portfolio.map((link) => (
+                                <li key={link.id} className="text-sm">
+                                    <p className="font-medium">{link.label}</p>
+                                    <p className="text-zinc-400 text-xs break-all">{link.url}</p>
+                                </li>
+                            ))}
+                        </ul>
                     </section>
                 )}
             </div>

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { ResumeContent, Experience, Education, Language } from "@/types/resume";
+import { OptionalSectionsForm } from "./OptionalSectionsForm";
 
 interface ResumeFormProps {
     data: ResumeContent;
@@ -710,6 +711,9 @@ export function ResumeForm({ data, onChange, onNext }: ResumeFormProps) {
                     </div>
                 )}
             </div>
+
+            {/* Optional Sections */}
+            <OptionalSectionsForm data={data} onChange={onChange} />
 
             {/* Next Button */}
             <div className="pt-4">

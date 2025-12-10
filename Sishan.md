@@ -1,5 +1,64 @@
 # ResumeCraft Development Log
 
+## 2025-12-11
+
+### Major Features Implemented
+
+#### 1. Multi-Template System
+- **Template Registry** (`src/components/resume/templates/index.ts`)
+  - Centralized template registration with metadata
+  - Sidebar configuration per template (width, color, position)
+- **Professional Template** - Dark navy sidebar (#2c3e50)
+- **Executive Template** - Light minimalist design with gray sidebar (#fafafa)
+
+#### 2. Optional Resume Sections
+Added 8 new optional sections to `ResumeContent`:
+- Projects, Certifications, Awards, Volunteer Experience
+- Publications, Interests, Portfolio, Custom Sections
+- Each section can be added/removed dynamically via UI
+
+#### 3. Split-Screen Layout
+- **Desktop**: Form on left (60%), Live preview on right (40%)
+- **Mobile**: Toggle between Form view and Preview view
+- Responsive design with `useMediaQuery` hook
+
+#### 4. A4 Page Sizing & Pagination
+- **Global Page Logic** in `PaginatedResume` component
+- A4 dimensions: 794×1123px at 96 DPI
+- Visual page breaks with shadows and page numbers
+- Sidebar background renders on EVERY page automatically
+- Content-based pagination (pages only added when content overflows)
+
+#### 5. Global Template Architecture
+Templates only define content - page mechanics are global:
+```ts
+// Adding a new template is now simple:
+myTemplate: {
+    id: "myTemplate",
+    name: "My Template",
+    description: "...",
+    component: MyTemplateComponent,
+    sidebar: {
+        width: 280,
+        color: "#2c3e50",
+        position: "left",
+    },
+}
+```
+
+#### Files Created/Modified:
+| File | Status | Purpose |
+|------|--------|---------|
+| `src/components/resume/templates/types.ts` | Modified | Added `SidebarConfig` type |
+| `src/components/resume/templates/index.ts` | Modified | Template registry with sidebar config |
+| `src/components/resume/A4PageContainer.tsx` | New | Global pagination & A4 page rendering |
+| `src/components/resume/OptionalSectionsForm.tsx` | New | Form for 8 optional sections |
+| `src/components/resume/templates/executive/*` | New | Executive template components |
+| `src/components/resume/templates/professional/*` | Modified | Added optional sections |
+| `src/app/create-resume/page.tsx` | Modified | Split-screen layout |
+
+---
+
 ## 2025-12-10
 
 ### Resume Form & Preview Feature
@@ -63,18 +122,12 @@ CREATE POLICY "Users can update own resumes" ON resumes FOR UPDATE USING (auth.u
 CREATE POLICY "Users can delete own resumes" ON resumes FOR DELETE USING (auth.uid() = user_id);
 ```
 
-#### Files Created/Modified:
-- `src/types/resume.ts` - Modified
-- `src/components/resume/ResumeForm.tsx` - New
-- `src/components/resume/ResumePreview.tsx` - New
-- `src/components/ui/textarea.tsx` - New
-- `src/app/create-resume/page.tsx` - New
-- `src/app/page.tsx` - Modified (added link)
-- `src/lib/supabase/middleware.ts` - Modified (added public route)
-- `supabase-schema.sql` - New
+---
 
-#### Next Steps:
+## Next Steps
 - [ ] Add PDF export functionality
 - [ ] Implement save to database
 - [ ] Add authentication pages (login/signup)
 - [ ] Dashboard for managing multiple resumes
+- [ ] More template designs
+
