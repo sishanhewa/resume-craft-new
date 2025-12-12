@@ -4,13 +4,13 @@ import { Suspense, useState, useEffect } from "react";
 import { FileText, PenLine, Eye, Save, Loader2, Home } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 import { ResumeForm } from "@/components/resume/ResumeForm";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { ExportButtons } from "@/components/resume/ExportButtons";
-import { Button } from "@/components/ui/button";
 
 import { ResumeChoiceModal } from "@/components/resume/ResumeChoiceModal";
 import { TemplatePreviewCard } from "@/components/resume/TemplatePreviewCard";
@@ -40,10 +40,7 @@ export default function CreateResumeClient() {
 
     const templates = getTemplateList();
 
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const supabase = createClient();
 
     // Check auth on mount and handle localStorage
     useEffect(() => {
