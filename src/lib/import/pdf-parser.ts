@@ -49,10 +49,13 @@ export async function parsePdf(file: File): Promise<Partial<ResumeContent>> {
 
         // Try AI parsing first (Server Action has access to env vars)
         try {
-            return await parseResumeWithAI(fullText);
+            const aiResult = await parseResumeWithAI(fullText);
+            if ('error' in aiResult && aiResult.error) {
+                throw new Error(aiResult.error);
+            }
+            return aiResult as Partial<ResumeContent>;
         } catch (aiError) {
             console.error("AI parsing failed (Gemini):", aiError);
-            // Debugging: Throw error to see it in UI
             throw new Error(`Gemini AI Error: ${aiError instanceof Error ? aiError.message : String(aiError)}`);
         }
 
