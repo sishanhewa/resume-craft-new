@@ -45,7 +45,7 @@ export async function checkImportLimit() {
 
     if (error) {
         console.error("Error checking import limit:", error);
-        return { allowed: false, error: "Failed to check limit" };
+        return { allowed: false, error: `Failed to check limit: ${error.message}` };
     }
 
     const count = recentImports?.length || 0;
