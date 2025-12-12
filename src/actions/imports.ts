@@ -32,7 +32,11 @@ export async function checkImportLimit() {
 
         if (authError || !user) {
             console.error("Auth error in checkImportLimit:", authError);
-            return { allowed: false, error: "Unauthorized: Could not identify user" };
+            const cookieNames = cookieStore.getAll().map(c => c.name).join(", ");
+            return {
+                allowed: false,
+                error: `Unauthorized: ${authError?.message || 'No user found'}. Cookies: [${cookieNames}]`
+            };
         }
 
         // Check imports in last 5 minutes
