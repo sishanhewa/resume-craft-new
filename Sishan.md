@@ -1,5 +1,92 @@
 # ResumeCraft Development Log
 
+## 2025-12-12
+
+### AI-Powered CV Import Feature
+
+#### 1. Gemini AI Resume Parsing
+- **Server Action** (`src/lib/import/ai-parser.ts`)
+  - Uses `gemini-2.5-flash` model (best free tier: 10-15 RPM, ~1,500 RPD)
+  - Secure server-side API calls (API key not exposed to client)
+  - Native JSON output with `responseMimeType: "application/json"`
+  - Extracts all sections: header, contact, profile, skills, languages, experience, education, projects, certifications, awards, volunteer, publications, interests
+
+#### 2. PDF & DOCX Text Extraction
+- **PDF Parser** (`src/lib/import/pdf-parser.ts`) - Uses `pdfjs-dist` with CDN worker
+- **DOCX Parser** (`src/lib/import/docx-parser.ts`) - Uses `mammoth` library
+- **Regex Fallback** (`src/lib/import/resume-extractor.ts`) - Backup if AI fails
+
+#### 3. Resume Creation Choice Modal
+- **Component** (`src/components/resume/ResumeChoiceModal.tsx`)
+- Shows on `/create-resume` page load with two options:
+  - ✨ "Start from Scratch" (recommended, with badge)
+  - 📄 "Import Existing Resume" (PDF/DOCX upload)
+
+#### 4. Homepage Template Gallery
+- **View Templates button** scrolls to gallery section
+- **Template Gallery** displays all templates with real previews
+- Uses sample data (`src/lib/sample-data.ts`) for realistic previews
+- Scaled-down A4 templates (35% scale, first page only)
+- Hover overlay with "Use This Template →" CTA
+- Each card links to `/create-resume`
+
+#### 5. Template Preview Cards
+- **Component** (`src/components/resume/TemplatePreviewCard.tsx`)
+- Used in both homepage gallery and create-resume template selector
+- Shows actual rendered templates at 14% scale (create-resume) / 35% scale (homepage)
+- Clips to first page only
+
+#### 6. PDF Export Feature
+- **Export Library** (`src/lib/export/pdf.ts`)
+  - Uses `html-to-image` to capture resume as high-quality PNG
+  - Uses `jsPDF` to generate proper A4-sized PDF
+  - Handles single and multi-page resumes
+  - Removes shadows during capture for clean output
+  - 2x pixel ratio for sharp text
+- **Export Button** (`src/components/resume/ExportButtons.tsx`)
+  - "Download PDF" button with loading state
+  - Targets `#resume-print-area` element
+
+
+#### Files Created:
+| File | Purpose |
+|------|---------|
+| `src/lib/import/ai-parser.ts` | Gemini AI resume parsing (Server Action) |
+| `src/lib/import/pdf-parser.ts` | PDF text extraction with pdfjs-dist |
+| `src/lib/import/docx-parser.ts` | DOCX text extraction with mammoth |
+| `src/lib/import/resume-extractor.ts` | Regex-based fallback parser |
+| `src/lib/import/index.ts` | Import barrel file |
+| `src/lib/export/pdf.ts` | PDF export using html-to-image + jsPDF |
+| `src/lib/export/index.ts` | Export barrel file |
+| `src/components/resume/ExportButtons.tsx` | PDF download button component |
+| `src/components/resume/ResumeChoiceModal.tsx` | Creation method choice modal |
+| `src/components/resume/TemplatePreviewCard.tsx` | Template preview card component |
+| `src/lib/sample-data.ts` | Sample resume data for previews |
+
+#### Files Modified:
+| File | Changes |
+|------|---------|
+| `src/app/create-resume/page.tsx` | Added modal, template preview cards, removed ImportButton |
+| `src/app/page.tsx` | Added template gallery section, scroll-to-templates button |
+| `next.config.ts` | Added webpack config for pdfjs-dist |
+| `.env.local` | Added `GEMINI_API_KEY` (server-side) |
+
+#### Dependencies Added:
+```json
+"@google/generative-ai": "^0.x.x",
+"pdfjs-dist": "^5.4.449",
+"mammoth": "^1.x.x",
+"html-to-image": "^1.x.x",
+"jspdf": "^2.x.x"
+```
+
+#### Environment Variables:
+```
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+---
+
 ## 2025-12-11
 
 ### Major Features Implemented
@@ -125,9 +212,7 @@ CREATE POLICY "Users can delete own resumes" ON resumes FOR DELETE USING (auth.u
 ---
 
 ## Next Steps
-- [ ] Add PDF export functionality
 - [ ] Implement save to database
 - [ ] Add authentication pages (login/signup)
 - [ ] Dashboard for managing multiple resumes
 - [ ] More template designs
-

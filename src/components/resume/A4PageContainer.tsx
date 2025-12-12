@@ -13,12 +13,14 @@ interface PaginatedResumeProps {
     children: ReactNode;
     sidebarWidth?: number;
     sidebarColor?: string;
+    isThumbnail?: boolean;
 }
 
 export function PaginatedResume({
     children,
     sidebarWidth = 280,
     sidebarColor,
+    isThumbnail = false,
 }: PaginatedResumeProps) {
     const measureRef = useRef<HTMLDivElement>(null);
     const [pageCount, setPageCount] = useState(1);
@@ -51,35 +53,43 @@ export function PaginatedResume({
         };
     }, [children]);
 
+    // In thumbnail mode, we only show first page, no scale (handled externally), no spacers
+    const displayPageCount = isThumbnail ? 1 : pageCount;
+    const currentScale = isThumbnail ? 1 : PREVIEW_SCALE;
+
     return (
-        <div className="flex flex-col items-center">
-            {/* Page indicator */}
-            <div className="mb-4 text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-500" />
-                {pageCount} page{pageCount > 1 ? "s" : ""} • A4 Format
-            </div>
+        <div className={`flex flex-col items-center ${isThumbnail ? '' : 'gap-4'}`}>
+            {/* Page indicator - Hide in thumbnail mode */}
+            {!isThumbnail && (
+                <div className="mb-4 text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500" />
+                    {pageCount} page{pageCount > 1 ? "s" : ""} • A4 Format
+                </div>
+            )}
 
             {/* Scaled container for all pages */}
             <div
                 style={{
-                    transform: `scale(${PREVIEW_SCALE})`,
-                    transformOrigin: "top center",
+                    transform: `scale(${currentScale})`,
+                    transformOrigin: "top left", // Changed to top-left for easier positioning
                     width: `${A4_WIDTH_PX}px`,
+                    // Remove height usage for thumbnail to avoid massive gaps
                 }}
             >
                 {/* Render each page */}
-                {Array.from({ length: pageCount }).map((_, pageIndex) => (
+                {Array.from({ length: displayPageCount }).map((_, pageIndex) => (
                     <div
                         key={pageIndex}
-                        className="mb-8 last:mb-0 relative"
+                        className={`${isThumbnail ? '' : 'mb-8'} last:mb-0 relative`}
                         style={{
                             width: `${A4_WIDTH_PX}px`,
                             height: `${A4_HEIGHT_PX}px`,
-                            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-                            borderRadius: "4px",
+                            boxShadow: isThumbnail ? "none" : "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                            borderRadius: isThumbnail ? "0" : "4px",
                             overflow: "hidden",
                             backgroundColor: "white",
                         }}
+                        data-resume-content="true"
                     >
                         {/* Sidebar background - renders on EVERY page to fill full height */}
                         {sidebarColor && (
@@ -112,19 +122,23 @@ export function PaginatedResume({
                             {children}
                         </div>
 
-                        {/* Page number footer */}
-                        <div
-                            className="absolute bottom-2 left-0 right-0 text-center text-xs text-zinc-400"
-                            style={{ zIndex: 10 }}
-                        >
-                            Page {pageIndex + 1}{pageCount > 1 ? ` of ${pageCount}` : ""}
-                        </div>
+                        {/* Page number footer - Hide in thumbnail */}
+                        {!isThumbnail && (
+                            <div
+                                className="absolute bottom-2 left-0 right-0 text-center text-xs text-zinc-400"
+                                style={{ zIndex: 10 }}
+                            >
+                                Page {pageIndex + 1}{pageCount > 1 ? ` of ${pageCount}` : ""}
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
 
-            {/* Spacer to account for scale transform */}
-            <div style={{ height: `${(1 - PREVIEW_SCALE) * A4_HEIGHT_PX * pageCount * -1 + 100}px` }} />
+            {/* Spacer to account for scale transform - Hide in thumbnail */}
+            {!isThumbnail && (
+                <div style={{ height: `${(1 - PREVIEW_SCALE) * A4_HEIGHT_PX * pageCount * -1 + 100}px` }} />
+            )}
         </div>
     );
 }

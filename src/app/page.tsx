@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { FileText, Sparkles, Download, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TemplateSlider } from "@/components/resume/TemplateSlider";
 
 export default function Home() {
   return (
@@ -63,6 +66,7 @@ export default function Home() {
               size="lg"
               variant="outline"
               className="rounded-full px-8 h-14 text-base border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              onClick={() => document.getElementById('templates')?.scrollIntoView({ behavior: 'smooth' })}
             >
               View Templates
             </Button>
@@ -117,6 +121,20 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Template Gallery */}
+      <section id="templates" className="py-20 px-6 bg-zinc-50/50 dark:bg-zinc-900/30">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-zinc-900 dark:text-white mb-4">
+            Professional Templates
+          </h2>
+          <p className="text-center text-zinc-600 dark:text-zinc-400 mb-12 max-w-xl mx-auto">
+            Choose from our collection of beautifully designed, ATS-friendly resume templates.
+          </p>
+
+          <TemplateSlider />
         </div>
       </section>
 
