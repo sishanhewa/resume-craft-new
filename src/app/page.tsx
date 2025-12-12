@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { FileText, Sparkles, Download, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ResumePreview } from "@/components/resume/ResumePreview";
+import { sampleResumeData } from "@/lib/sample-data";
+import { getTemplateList } from "@/components/resume/templates";
 
 export default function Home() {
   return (
@@ -63,6 +68,7 @@ export default function Home() {
               size="lg"
               variant="outline"
               className="rounded-full px-8 h-14 text-base border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              onClick={() => document.getElementById('templates')?.scrollIntoView({ behavior: 'smooth' })}
             >
               View Templates
             </Button>
@@ -116,6 +122,64 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Template Gallery */}
+      <section id="templates" className="py-20 px-6 bg-zinc-50/50 dark:bg-zinc-900/30">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-zinc-900 dark:text-white mb-4">
+            Professional Templates
+          </h2>
+          <p className="text-center text-zinc-600 dark:text-zinc-400 mb-12 max-w-xl mx-auto">
+            Choose from our collection of beautifully designed, ATS-friendly resume templates.
+          </p>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+            {getTemplateList().map((template) => (
+              <Link
+                key={template.id}
+                href="/create-resume"
+                className="group relative bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-500/50 transition-all hover:shadow-2xl hover:shadow-blue-500/10 overflow-hidden"
+              >
+                {/* Template Preview - First page only */}
+                <div className="w-[280px] h-[360px] overflow-hidden bg-white relative">
+                  <div
+                    className="absolute inset-0 origin-top-left pointer-events-none overflow-hidden"
+                    style={{
+                      transform: "scale(0.35)",
+                      width: "210mm",
+                      height: "297mm", /* A4 page height */
+                      maxHeight: "297mm", /* Clip to first page */
+                    }}
+                  >
+                    <ResumePreview
+                      data={sampleResumeData}
+                      templateId={template.id}
+                      hideBackButton={true}
+                    />
+                  </div>
+                </div>
+
+                {/* Template Info */}
+                <div className="p-4 border-t border-zinc-100 dark:border-zinc-700">
+                  <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {template.name}
+                  </h3>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                    Clean & Professional
+                  </p>
+                </div>
+
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-blue-600/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-20">
+                  <span className="text-white font-medium px-6 py-2 bg-white/20 rounded-full backdrop-blur-sm">
+                    Use This Template →
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

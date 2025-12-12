@@ -116,7 +116,48 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Print Styles for PDF Export */
+@media print {
+
+  /* Hide everything except the resume */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only the printable resume area */
+  #resume-print-area,
+  #resume-print-area * {
+    visibility: visible !important;
+  }
+
+  #resume-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Reset page margins */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  /* Remove transform scaling for actual print */
+  #resume-print-area>div {
+    transform: none !important;
+  }
+
+  /* Hide navigation, buttons, and other UI */
+  nav,
+  button,
+  .no-print {
+    display: none !important;
   }
 }

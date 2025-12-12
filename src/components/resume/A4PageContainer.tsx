@@ -80,6 +80,7 @@ export function PaginatedResume({
                             overflow: "hidden",
                             backgroundColor: "white",
                         }}
+                        data-resume-content="true"
                     >
                         {/* Sidebar background - renders on EVERY page to fill full height */}
                         {sidebarColor && (
