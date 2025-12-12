@@ -119,18 +119,11 @@ export async function parseResumeWithAI(rawText: string): Promise<Partial<Resume
       },
     });
 
-    // ... LOGS ...
-
     const prompt = `${RESUME_PARSE_PROMPT}\n\nHere is the resume text to parse:\n\n${rawText}`;
 
     const result = await model.generateContent(prompt);
     const response = result.response;
     let jsonText = response.text();
-
-    // LOG: AI response
-    console.log("=== AI PARSER OUTPUT ===");
-    console.log("JSON response length:", jsonText.length);
-    console.log("JSON response (snippet):", jsonText.substring(0, 100) + "..." + jsonText.substring(jsonText.length - 100));
 
     // Cleanup: Remove markdown code blocks if present (common AI artifact)
     jsonText = jsonText.replace(/```json/g, "").replace(/```/g, "").trim();
@@ -139,15 +132,8 @@ export async function parseResumeWithAI(rawText: string): Promise<Partial<Resume
     try {
       parsed = JSON.parse(jsonText);
     } catch (parseError) {
-      console.error("JSON Parse Error:", parseError);
-      console.error("Failed JSON Content:", jsonText);
       throw new Error(`Failed to parse AI response as JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
     }
-
-    // LOG: Parsed object
-    console.log("=== PARSED OBJECT ===");
-    console.log(JSON.stringify(parsed, null, 2));
-    console.log("=====================");
 
     // ... addIds logic ...
     const addIds = (arr: any[]) => arr ? arr.map(item => ({

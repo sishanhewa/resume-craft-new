@@ -31,6 +31,48 @@ export function PaginatedResume({
     // Calculate pages logic
     useEffect(() => {
         const calculatePages = () => {
+            // --- 1. Reset pagination styles globally ---
+            const allItems = containerRef.current?.querySelectorAll('.resume-section-item');
+            allItems?.forEach((item) => {
+                (item as HTMLElement).style.paddingTop = '0px';
+            });
+
+            // --- 2. Repaginate items sequentially based on offsetTop ---
+            // We target ALL content wrappers to ensure every page copy is identical
+            const wrappers = containerRef.current?.querySelectorAll('.page-content-wrapper');
+            console.log(`[Pagination] Found ${wrappers?.length} page wrappers`);
+
+            wrappers?.forEach((wrapper, wIndex) => {
+                const items = wrapper.querySelectorAll('.resume-section-item');
+                console.log(`[Pagination] Wrapper ${wIndex}: Found ${items.length} items to check`);
+
+                items.forEach((item) => {
+                    // Start of the element relative to the document flow (inside the wrapper)
+                    const relTop = (item as HTMLElement).offsetTop;
+                    const height = (item as HTMLElement).offsetHeight;
+                    const relBottom = relTop + height;
+
+                    const PAGE_HEIGHT = A4_HEIGHT_PX;
+                    const BOTTOM_MARGIN = 60;
+
+                    const startPage = Math.floor(relTop / PAGE_HEIGHT);
+                    const endPage = Math.floor(relBottom / PAGE_HEIGHT);
+
+                    const bottomInPage = relBottom - (startPage * PAGE_HEIGHT);
+
+                    const crossesLine = startPage !== endPage;
+                    const entersDangerZone = bottomInPage > (PAGE_HEIGHT - BOTTOM_MARGIN);
+
+                    if (crossesLine || entersDangerZone) {
+                        console.log(`[Pagination] Pushing item at ${Math.round(relTop)}px to next page`);
+                        const breakLine = (startPage + 1) * PAGE_HEIGHT;
+                        const pushDown = breakLine - relTop + 40;
+                        (item as HTMLElement).style.paddingTop = `${pushDown}px`;
+                    }
+                });
+            });
+
+            // --- 3. Recalculate total height (based on the first/measured instance) ---
             if (measureRef.current) {
                 const contentHeight = measureRef.current.scrollHeight;
                 const pages = Math.max(1, Math.ceil(contentHeight / A4_HEIGHT_PX));
@@ -39,7 +81,9 @@ export function PaginatedResume({
         };
 
         const timer = setTimeout(calculatePages, 100);
+        // Observe both resizing AND mutations (content changes)
         const observer = new ResizeObserver(() => {
+            // Debounce slightly to avoid flicker loops
             setTimeout(calculatePages, 50);
         });
 
@@ -153,6 +197,7 @@ export function PaginatedResume({
                         {/* Content window - shifts up for each page */}
                         <div
                             ref={pageIndex === 0 ? measureRef : undefined}
+                            className="page-content-wrapper"
                             style={{
                                 position: "absolute",
                                 top: 0,
