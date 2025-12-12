@@ -44,12 +44,18 @@ export function PaginatedResume({
 
             wrappers?.forEach((wrapper, wIndex) => {
                 const items = wrapper.querySelectorAll('.resume-section-item');
-                console.log(`[Pagination] Wrapper ${wIndex}: Found ${items.length} items to check`);
+                // Only log if we find items, to reduce noise
+                if (items.length > 0) {
+                    // console.log(`[Pagination] Wrapper ${wIndex}: processing ${items.length} items`);
+                }
+
+                const wrapperRect = wrapper.getBoundingClientRect();
 
                 items.forEach((item) => {
-                    // Start of the element relative to the document flow (inside the wrapper)
-                    const relTop = (item as HTMLElement).offsetTop;
-                    const height = (item as HTMLElement).offsetHeight;
+                    // Use getBoundingClientRect for precise visual positioning relative to the wrapper
+                    const itemRect = item.getBoundingClientRect();
+                    const relTop = itemRect.top - wrapperRect.top;
+                    const height = itemRect.height;
                     const relBottom = relTop + height;
 
                     const PAGE_HEIGHT = A4_HEIGHT_PX;
@@ -64,7 +70,7 @@ export function PaginatedResume({
                     const entersDangerZone = bottomInPage > (PAGE_HEIGHT - BOTTOM_MARGIN);
 
                     if (crossesLine || entersDangerZone) {
-                        console.log(`[Pagination] Pushing item at ${Math.round(relTop)}px to next page`);
+                        console.log(`[Pagination] Push: Item at y=${Math.round(relTop)} (Page ${startPage}) -> Page ${startPage + 1}`);
                         const breakLine = (startPage + 1) * PAGE_HEIGHT;
                         const pushDown = breakLine - relTop + 40;
                         (item as HTMLElement).style.paddingTop = `${pushDown}px`;
