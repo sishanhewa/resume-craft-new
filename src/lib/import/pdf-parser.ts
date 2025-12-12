@@ -51,10 +51,12 @@ export async function parsePdf(file: File): Promise<Partial<ResumeContent>> {
         try {
             return await parseResumeWithAI(fullText);
         } catch (aiError) {
-            console.warn("AI parsing failed, falling back to regex:", aiError);
+            console.error("AI parsing failed (Gemini):", aiError);
+            // Debugging: Throw error to see it in UI
+            throw new Error(`Gemini AI Error: ${aiError instanceof Error ? aiError.message : String(aiError)}`);
         }
 
-        // Fallback to regex-based extraction
+        // Fallback to regex-based extraction (Unreachable while debugging)
         return extractResumeFromText(fullText);
     } catch (error) {
         console.error("Error parsing PDF:", error);
