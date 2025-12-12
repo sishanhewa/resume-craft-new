@@ -7,12 +7,28 @@ import { Button } from "@/components/ui/button";
 import { TemplateSlider } from "@/components/resume/TemplateSlider";
 import { AuthModal } from "@/components/auth/AuthModal";
 
+import { checkImportLimit } from "@/actions/imports";
+
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [debugLog, setDebugLog] = useState<string | null>(null);
 
   const supabase = createClient();
+
+  // Test Server Action
+  const runTest = async () => {
+    try {
+      setDebugLog("Testing Server Action...");
+      const result = await checkImportLimit();
+      setDebugLog("SUCCESS RESULT:\n" + JSON.stringify(result, null, 2));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Current error";
+      const fullError = JSON.stringify(e, Object.getOwnPropertyNames(e), 2);
+      setDebugLog(`ERROR:\nError Type: ${typeof e}\nMessage: ${msg}\nFull Object: ${fullError}`);
+    }
+  };
 
   useEffect(() => {
     const checkUser = async () => {
@@ -30,6 +46,7 @@ export default function Home() {
         onClose={() => setShowAuthModal(false)}
         defaultTab="login"
       />
+
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-black/70 border-b border-white/20 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -87,9 +104,25 @@ export default function Home() {
               AI-Powered Resume Builder
             </span>
           </div>
+
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-red-600 dark:text-red-500 mb-2">
             BUILD TEST
           </h1>
+
+          {/* Debug Controls */}
+          <div className="mb-8 p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white/50 dark:bg-zinc-900/50">
+            <Button onClick={runTest} variant="destructive" className="mb-4">
+              TEST SERVER ACTION
+            </Button>
+
+            {debugLog && (
+              <div className="text-left bg-zinc-950 text-green-400 p-4 rounded-lg overflow-x-auto border border-zinc-800">
+                <pre className="text-xs font-mono whitespace-pre-wrap break-all">
+                  {debugLog}
+                </pre>
+              </div>
+            )}
+          </div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-zinc-900 dark:text-white mb-6 leading-[1.1]">
             Create stunning resumes
             <span className="block bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 bg-clip-text text-transparent">
