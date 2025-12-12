@@ -87,6 +87,9 @@ export default function Home() {
               AI-Powered Resume Builder
             </span>
           </div>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-red-600 dark:text-red-500 mb-2">
+            BUILD TEST
+          </h1>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-zinc-900 dark:text-white mb-6 leading-[1.1]">
             Create stunning resumes
             <span className="block bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 bg-clip-text text-transparent">
