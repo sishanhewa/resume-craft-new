@@ -1,13 +1,38 @@
 "use client";
-
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FileText, Sparkles, Download, ArrowRight } from "lucide-react";
+import { FileText, Sparkles, Download, ArrowRight, LayoutDashboard } from "lucide-react";
+import { createBrowserClient } from "@supabase/ssr";
 import { Button } from "@/components/ui/button";
 import { TemplateSlider } from "@/components/resume/TemplateSlider";
+import { AuthModal } from "@/components/auth/AuthModal";
 
 export default function Home() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+      setLoading(false);
+    };
+    checkUser();
+  }, [supabase]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-zinc-950 dark:via-black dark:to-zinc-900">
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultTab="login"
+      />
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-black/70 border-b border-white/20 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -20,15 +45,38 @@ export default function Home() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
-            >
-              Sign In
-            </Link>
-            <Button className="rounded-full px-5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200">
-              Get Started
-            </Button>
+            {!loading && (
+              isAuthenticated ? (
+                <Link href="/dashboard">
+                  <Button variant="ghost" className="rounded-full font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowAuthModal(true)}
+                  className="rounded-full font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                >
+                  Sign In
+                </Button>
+              )
+            )}
+            {isAuthenticated ? (
+              <Link href="/create-resume">
+                <Button className="rounded-full px-5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200">
+                  New Resume
+                </Button>
+              </Link>
+            ) : (
+              <Button
+                onClick={() => setShowAuthModal(true)}
+                className="rounded-full px-5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+              >
+                Get Started
+              </Button>
+            )}
           </div>
         </div>
       </nav>

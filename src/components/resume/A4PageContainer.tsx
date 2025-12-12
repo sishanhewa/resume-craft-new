@@ -7,7 +7,8 @@ export const A4_WIDTH_PX = 794;
 export const A4_HEIGHT_PX = 1123;
 
 // For scaled preview display
-const PREVIEW_SCALE = 0.75;
+const DESKTOP_SCALE = 0.75;
+const MOBILE_PADDING = 32; // px
 
 interface PaginatedResumeProps {
     children: ReactNode;
@@ -22,23 +23,22 @@ export function PaginatedResume({
     sidebarColor,
     isThumbnail = false,
 }: PaginatedResumeProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
     const measureRef = useRef<HTMLDivElement>(null);
     const [pageCount, setPageCount] = useState(1);
+    const [scale, setScale] = useState(isThumbnail ? 1 : DESKTOP_SCALE);
 
+    // Calculate pages logic
     useEffect(() => {
         const calculatePages = () => {
             if (measureRef.current) {
                 const contentHeight = measureRef.current.scrollHeight;
-                // Only add more pages if content actually exceeds one A4 page
                 const pages = Math.max(1, Math.ceil(contentHeight / A4_HEIGHT_PX));
                 setPageCount(pages);
             }
         };
 
-        // Calculate on mount with delay for render
         const timer = setTimeout(calculatePages, 100);
-
-        // Recalculate on resize
         const observer = new ResizeObserver(() => {
             setTimeout(calculatePages, 50);
         });
@@ -53,12 +53,56 @@ export function PaginatedResume({
         };
     }, [children]);
 
+    // Responsive scaling logic
+    useEffect(() => {
+        if (isThumbnail) return;
+
+        const updateScale = () => {
+            if (containerRef.current) {
+                const containerWidth = containerRef.current.clientWidth;
+                // Calculate max available width including some padding
+                const maxAvailableWidth = containerWidth - MOBILE_PADDING;
+
+                // If container is smaller than scaled A4, shrink it
+                // Default to DESKTOP_SCALE on larger screens
+                const targetScale = Math.min(
+                    DESKTOP_SCALE,
+                    maxAvailableWidth / A4_WIDTH_PX
+                );
+
+                setScale(targetScale);
+            }
+        };
+
+        // Initial calculation
+        updateScale();
+
+        // Listen for resize
+        const resizeObserver = new ResizeObserver(updateScale);
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current);
+        }
+
+        window.addEventListener('resize', updateScale);
+
+        return () => {
+            resizeObserver.disconnect();
+            window.removeEventListener('resize', updateScale);
+        };
+    }, [isThumbnail]);
+
     // In thumbnail mode, we only show first page, no scale (handled externally), no spacers
     const displayPageCount = isThumbnail ? 1 : pageCount;
-    const currentScale = isThumbnail ? 1 : PREVIEW_SCALE;
+    // For thumbnail, keep scale 1 (handled by parent typically) or let it fit
+    // But usually thumbnails are just fixed scale or transform-origin center
+    // The previous code kept scale 1 for thumbnail.
+    const currentScale = isThumbnail ? 1 : scale;
 
     return (
-        <div className={`flex flex-col items-center ${isThumbnail ? '' : 'gap-4'}`}>
+        <div
+            ref={containerRef}
+            className={`flex flex-col items-center w-full ${isThumbnail ? '' : 'gap-4'}`}
+        >
             {/* Page indicator - Hide in thumbnail mode */}
             {!isThumbnail && (
                 <div className="mb-4 text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
@@ -71,10 +115,10 @@ export function PaginatedResume({
             <div
                 style={{
                     transform: `scale(${currentScale})`,
-                    transformOrigin: "top left", // Changed to top-left for easier positioning
+                    transformOrigin: "top center", // Center transform for better mobile alignment
                     width: `${A4_WIDTH_PX}px`,
-                    // Remove height usage for thumbnail to avoid massive gaps
                 }}
+                className="transition-transform duration-200 ease-out"
             >
                 {/* Render each page */}
                 {Array.from({ length: displayPageCount }).map((_, pageIndex) => (
@@ -137,7 +181,23 @@ export function PaginatedResume({
 
             {/* Spacer to account for scale transform - Hide in thumbnail */}
             {!isThumbnail && (
-                <div style={{ height: `${(1 - PREVIEW_SCALE) * A4_HEIGHT_PX * pageCount * -1 + 100}px` }} />
+                <div style={{
+                    // Calculate height based on number of pages + margins * scale difference
+                    height: `${(A4_HEIGHT_PX * pageCount * currentScale) + (32 * (pageCount - 1) * currentScale) - (A4_HEIGHT_PX * pageCount) + 100}px`,
+                    display: 'none' // We can probably just rely on the transformed height if we handle it differently, 
+                    // but usually scaling keeps original layout flow size. 
+                    // Let's try simpler spacer logic or just margin-bottom compensation.
+                }} />
+            )}
+            {/* 
+                Since we transform-origin: top center, the element takes up its original space in the flow.
+                We need to "pull up" the content below it.
+                The visual height is: (TotalHeight * scale)
+                The layout height is: TotalHeight
+                So we need negative margin of: TotalHeight * (1 - scale)
+             */}
+            {!isThumbnail && (
+                <div style={{ marginTop: `-${(A4_HEIGHT_PX * pageCount + (32 * (pageCount - 1))) * (1 - currentScale)}px` }} />
             )}
         </div>
     );

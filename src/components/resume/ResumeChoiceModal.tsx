@@ -1,32 +1,102 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PenLine, Upload, Sparkles, Loader2 } from "lucide-react";
 import { parseDocx, parsePdf } from "@/lib/import";
 import type { ResumeContent } from "@/types/resume";
+
+import { checkImportLimit, logImportAttempt } from "@/actions/imports";
+import { toast } from "sonner";
 
 interface ResumeChoiceModalProps {
     isOpen: boolean;
     onStartFromScratch: () => void;
     onImport: (data: Partial<ResumeContent>) => void;
+    isAuthenticated: boolean;
+    onAuthRequested: () => void;
 }
 
-export function ResumeChoiceModal({ isOpen, onStartFromScratch, onImport }: ResumeChoiceModalProps) {
+export function ResumeChoiceModal({
+    isOpen,
+    onStartFromScratch,
+    onImport,
+    isAuthenticated,
+    onAuthRequested
+}: ResumeChoiceModalProps) {
+    const [isCheckingLimit, setIsCheckingLimit] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [quotaInfo, setQuotaInfo] = useState<{ remaining: number; resetTime: Date | null } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Fetch quota info when modal opens and user is authenticated
+    useEffect(() => {
+        if (isOpen && isAuthenticated && !quotaInfo) {
+            checkImportLimit().then((result) => {
+                if ('remaining' in result) {
+                    setQuotaInfo({
+                        remaining: result.remaining!,
+                        resetTime: result.resetTime ? new Date(result.resetTime) : null
+                    });
+                }
+            });
+        }
+    }, [isOpen, isAuthenticated]);
+
     if (!isOpen) return null;
+
+    const handleImportClick = () => {
+        // 1. Check Auth Sync
+        if (!isAuthenticated) {
+            toast.info("Please login to import an existing resume");
+            onAuthRequested();
+            return;
+        }
+
+        // 2. Open Dialog Immediately (Sync)
+        fileInputRef.current?.click();
+    };
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
-        setIsImporting(true);
+        // Reset error
         setError(null);
 
+        // 3. Check Limit First
+        setIsCheckingLimit(true);
+        try {
+            const result = await checkImportLimit();
+
+            // Update quota info with latest result
+            if ('remaining' in result) {
+                setQuotaInfo({
+                    remaining: result.remaining!,
+                    resetTime: result.resetTime ? new Date(result.resetTime) : null
+                });
+            }
+
+            if (!result.allowed) {
+                const errorMsg = result.error || "Import limit reached";
+                toast.error(errorMsg);
+                setError(errorMsg);
+                if (fileInputRef.current) fileInputRef.current.value = "";
+                return;
+            }
+        } catch (err) {
+            toast.error("Failed to check import limit");
+            setError("Failed to check import limit");
+            return;
+        } finally {
+            setIsCheckingLimit(false);
+        }
+
+        // 4. Start Import
+        setIsImporting(true);
         try {
             let extractedData: Partial<ResumeContent>;
+            const fileType = file.name.split('.').pop()?.toLowerCase() || 'unknown';
 
             if (file.name.endsWith(".docx") || file.name.endsWith(".doc")) {
                 extractedData = await parseDocx(file);
@@ -36,20 +106,36 @@ export function ResumeChoiceModal({ isOpen, onStartFromScratch, onImport }: Resu
                 throw new Error("Unsupported file format. Please use PDF or DOCX.");
             }
 
+            // 5. Log usage after successful parse
+            await logImportAttempt(fileType);
+
             onImport(extractedData);
+
+            // Refresh quota info after successful import
+            checkImportLimit().then((result) => {
+                if ('remaining' in result) {
+                    setQuotaInfo({
+                        remaining: result.remaining!,
+                        resetTime: result.resetTime ? new Date(result.resetTime) : null
+                    });
+                }
+            });
+
         } catch (err) {
             console.error("Import error:", err);
             setError(err instanceof Error ? err.message : "Failed to import file");
+        } finally {
             setIsImporting(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
         }
     };
 
-    const handleImportClick = () => {
-        fileInputRef.current?.click();
-    };
+    const isLoading = isCheckingLimit || isImporting;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+        <div className="fixed inset-0 z-40 flex items-center justify-center">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
@@ -94,7 +180,7 @@ export function ResumeChoiceModal({ isOpen, onStartFromScratch, onImport }: Resu
                         {/* Import Existing */}
                         <button
                             onClick={handleImportClick}
-                            disabled={isImporting}
+                            disabled={isLoading}
                             className="group p-6 rounded-xl border-2 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 bg-white dark:bg-zinc-800/50 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-200 text-left disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             <input
@@ -106,7 +192,7 @@ export function ResumeChoiceModal({ isOpen, onStartFromScratch, onImport }: Resu
                             />
 
                             <div className="w-12 h-12 rounded-xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4 group-hover:bg-zinc-300 dark:group-hover:bg-zinc-600 transition-colors">
-                                {isImporting ? (
+                                {isLoading ? (
                                     <Loader2 className="w-6 h-6 text-zinc-600 dark:text-zinc-400 animate-spin" />
                                 ) : (
                                     <Upload className="w-6 h-6 text-zinc-600 dark:text-zinc-400" />
@@ -114,10 +200,22 @@ export function ResumeChoiceModal({ isOpen, onStartFromScratch, onImport }: Resu
                             </div>
 
                             <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">
-                                {isImporting ? "Importing..." : "Import Existing Resume"}
+                                {isImporting ? "Importing..." : isCheckingLimit ? "Checking..." : "Import Existing Resume"}
                             </h3>
                             <p className="text-sm text-zinc-600 dark:text-zinc-400">
                                 Upload a PDF or Word document. AI will extract your information automatically.
+                                <br />
+                                <span className="text-xs text-zinc-500 mt-1 block">
+                                    (Login required • Limit 2/5 min)
+                                    {isAuthenticated && quotaInfo !== null && (
+                                        <span className="block mt-0.5 font-medium text-zinc-600 dark:text-zinc-300">
+                                            {quotaInfo.remaining} remaining
+                                            {quotaInfo.resetTime && quotaInfo.remaining < 2 && (
+                                                <> • resets {quotaInfo.resetTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</>
+                                            )}
+                                        </span>
+                                    )}
+                                </span>
                             </p>
                         </button>
                     </div>
