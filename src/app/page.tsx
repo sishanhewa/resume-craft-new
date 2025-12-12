@@ -11,48 +11,17 @@ import { Button } from "@/components/ui/button";
 import { TemplateSlider } from "@/components/resume/TemplateSlider";
 import { AuthModal } from "@/components/auth/AuthModal";
 
-import { checkImportLimit } from "@/actions/imports";
-import { testAction } from "@/actions/test";
-
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [debugLog, setDebugLog] = useState<string | null>(null);
 
   const supabase = createClient();
-
-  // Test Server Action
-  const runTest = async () => {
-    try {
-      setDebugLog("Testing Import Action (Supabase)...");
-      const result = await checkImportLimit();
-      setDebugLog("IMPORT RESULT:\n" + JSON.stringify(result, null, 2));
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Current error";
-      const fullError = JSON.stringify(e, Object.getOwnPropertyNames(e), 2);
-      setDebugLog(`IMPORT ERROR:\n${msg}\n${fullError}`);
-    }
-  };
-
-  const runSimpleTest = async () => {
-    try {
-      setDebugLog("Testing Simple Action...");
-      const result = await testAction();
-      setDebugLog("SIMPLE RESULT:\n" + JSON.stringify(result, null, 2));
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Current error";
-      const fullError = JSON.stringify(e, Object.getOwnPropertyNames(e), 2);
-      setDebugLog(`SIMPLE ERROR:\n${msg}\n${fullError}`);
-    }
-  };
 
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
-      setUserEmail(user?.email || null);
       setLoading(false);
     };
     checkUser();
@@ -124,29 +93,6 @@ export default function Home() {
             </span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-red-600 dark:text-red-500 mb-2">
-            BUILD TEST {userEmail ? `(${userEmail})` : ''}
-          </h1>
-
-          {/* Debug Controls */}
-          <div className="mb-8 p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white/50 dark:bg-zinc-900/50">
-            <div className="flex justify-center gap-4 mb-4">
-              <Button onClick={runSimpleTest} variant="outline">
-                TEST SIMPLE ACTION (Echo)
-              </Button>
-              <Button onClick={runTest} variant="destructive">
-                TEST SUPABASE ACTION (Imports)
-              </Button>
-            </div>
-
-            {debugLog && (
-              <div className="text-left bg-zinc-950 text-green-400 p-4 rounded-lg overflow-x-auto border border-zinc-800">
-                <pre className="text-xs font-mono whitespace-pre-wrap break-all">
-                  {debugLog}
-                </pre>
-              </div>
-            )}
-          </div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-zinc-900 dark:text-white mb-6 leading-[1.1]">
             Create stunning resumes
             <span className="block bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 bg-clip-text text-transparent">
