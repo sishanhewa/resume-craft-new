@@ -17,7 +17,8 @@ export async function parseDocx(file: File): Promise<Partial<ResumeContent>> {
         try {
             return await parseResumeWithAI(rawText);
         } catch (aiError) {
-            console.warn("AI parsing failed, falling back to regex:", aiError);
+            console.error("AI parsing failed (Gemini):", aiError);
+            throw new Error(`Gemini AI Error: ${aiError instanceof Error ? aiError.message : String(aiError)}`);
         }
 
         // Fallback to regex-based extraction
