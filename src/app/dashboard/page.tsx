@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 import { cookies } from "next/headers";
 import { FileText, LogOut, User, Home } from "lucide-react";
 import Link from "next/link";
@@ -87,9 +88,17 @@ export default async function DashboardPage() {
 
             <main className="container mx-auto px-4 py-8">
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">
-                        My Resumes
-                    </h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">
+                            My Resumes
+                        </h1>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${process.env.NEXT_RUNTIME === 'edge'
+                                ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20"
+                                : "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20"
+                            }`}>
+                            {process.env.NEXT_RUNTIME === 'edge' ? 'Edge Runtime' : 'Node Runtime'}
+                        </span>
+                    </div>
                     <p className="text-zinc-500 dark:text-zinc-400">
                         Manage and edit your saved resumes
                     </p>

@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import CreateResumeClient from "@/components/resume/CreateResumeClient";
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 export default function CreateResumePage() {
     return (
