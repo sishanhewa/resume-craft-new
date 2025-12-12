@@ -26,6 +26,7 @@ export function ResumeChoiceModal({
     const [isCheckingLimit, setIsCheckingLimit] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [debugLog, setDebugLog] = useState<string | null>(null);
     const [quotaInfo, setQuotaInfo] = useState<{ remaining: number; resetTime: Date | null } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,6 +88,10 @@ export function ResumeChoiceModal({
         } catch (err) {
             console.error("Error checking import limit (Client Catch):", err);
             const msg = err instanceof Error ? err.message : "Current error";
+            const fullError = JSON.stringify(err, Object.getOwnPropertyNames(err), 2);
+
+            setDebugLog(`Error Type: ${typeof err}\nIs Error Instance: ${err instanceof Error}\nMessage: ${msg}\nFull Object: ${fullError}`);
+
             toast.error(`Failed to check import limit: ${msg}`);
             setError(`Failed to check import limit: ${msg}`);
             return;
@@ -225,7 +230,17 @@ export function ResumeChoiceModal({
                     {/* Error Message */}
                     {error && (
                         <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
-                            {error}
+                            <strong>Error:</strong> {error}
+                        </div>
+                    )}
+
+                    {/* HUGE Debug Log */}
+                    {debugLog && (
+                        <div className="mt-4 p-4 bg-zinc-900 text-green-400 font-mono text-xs rounded-lg overflow-x-auto max-h-60 border border-zinc-700">
+                            <strong>DEBUG LOG (Show this to developer):</strong>
+                            <pre className="mt-2 text-wrap break-all whitespace-pre-wrap">
+                                {debugLog}
+                            </pre>
                         </div>
                     )}
 
