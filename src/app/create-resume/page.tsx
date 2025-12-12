@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = 'edge';
+
 import { Suspense, useState, useEffect } from "react";
 import { FileText, PenLine, Eye, Save, Loader2, Home } from "lucide-react";
 import Link from "next/link";
