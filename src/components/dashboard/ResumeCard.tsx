@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { MoreVertical, Trash2, Edit } from "lucide-react";
 import { ResumeContent } from "@/types/resume";
 import { ResumePreview } from "@/components/resume/ResumePreview";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 import {
@@ -29,10 +29,7 @@ export function ResumeCard({ id, title, content, templateId = "professional", up
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
 
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const supabase = createClient();
 
     const handleDelete = async (e: React.MouseEvent) => {
         e.preventDefault();

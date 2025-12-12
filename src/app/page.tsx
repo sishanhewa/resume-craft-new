@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FileText, Sparkles, Download, ArrowRight, LayoutDashboard } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { TemplateSlider } from "@/components/resume/TemplateSlider";
 import { AuthModal } from "@/components/auth/AuthModal";
@@ -12,10 +12,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   useEffect(() => {
     const checkUser = async () => {
