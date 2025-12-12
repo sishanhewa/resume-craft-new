@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { FileText, Check, PenLine, Eye, Save, Loader2, Home } from "lucide-react";
+import { Suspense, useState, useEffect } from "react";
+import { FileText, PenLine, Eye, Save, Loader2, Home } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { toast } from "sonner";
-import { debounce } from "lodash";
 
 import { ResumeForm } from "@/components/resume/ResumeForm";
 import { ResumePreview } from "@/components/resume/ResumePreview";
@@ -18,13 +17,9 @@ import { TemplatePreviewCard } from "@/components/resume/TemplatePreviewCard";
 import { createEmptyResumeContent, type ResumeContent } from "@/types/resume";
 import { getTemplateList } from "@/components/resume/templates";
 
-// Define debounce at module level outside component to prevent recreation
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const DEBOUNCE_DELAY = 2000;
-
 import { AuthModal } from "@/components/auth/AuthModal";
 
-export default function CreateResumePage() {
+function CreateResumeContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const resumeId = searchParams.get("id");
@@ -364,3 +359,17 @@ export default function CreateResumePage() {
         </>
     );
 }
+
+export default function CreateResumePage() {
+    return (
+        <Suspense fallback={
+            <div className="flex bg-white dark:bg-black items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
+            </div>
+        }>
+            <CreateResumeContent />
+        </Suspense>
+    );
+}
+
+
