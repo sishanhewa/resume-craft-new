@@ -1,5 +1,37 @@
 # ResumeCraft Development Log
 
+## 2025-12-13
+
+### Dashboard Login & Rate Limiting
+
+#### 1. User Dashboard & Authentication
+- **Global Auth Modal** (`src/components/auth/AuthModal.tsx`)
+  - Login/Signup tabs
+  - Persistent session management with Supabase Auth
+  - Redirects to `/dashboard` upon login
+- **Protected Routes**
+  - Saving requires login
+  - Importing requires login
+- **User Dashboard** (`src/app/dashboard/page.tsx`)
+  - Lists all user resumes
+  - Edit / Delete / Duplicate actions
+  - "Create New" flow integration
+
+#### 2. Import Rate Limiting
+- **Rate Limit Window**: 2 imports per 5 minutes
+- **Server Action** (`src/actions/imports.ts`)
+  - Checks `import_logs` table for recent activity
+  - Returns remaining quota and reset time
+- **UI Feedback** (`ResumeChoiceModal.tsx`)
+  - Displays live countdown: "Limit 2/5 min"
+  - Shows "X remaining" or "resets at HH:MM"
+  - Prevents abuse while preserving friendly UX
+
+#### 3. Profile Photo Handling
+- **Architecture**: Client-side Base64 encoding
+- **Storage**: Stored directly in `resumes` table JSONB column (no external bucket needed)
+- **Sync**: Automatically synced across all user devices via cloud database
+
 ## 2025-12-12
 
 ### AI-Powered CV Import Feature
@@ -212,7 +244,9 @@ CREATE POLICY "Users can delete own resumes" ON resumes FOR DELETE USING (auth.u
 ---
 
 ## Next Steps
-- [ ] Implement save to database
-- [ ] Add authentication pages (login/signup)
-- [ ] Dashboard for managing multiple resumes
+- [x] Implement save to database
+- [x] Add authentication pages (login/signup)
+- [x] Dashboard for managing multiple resumes
 - [ ] More template designs
+- [ ] Mobile responsive optimizations
+

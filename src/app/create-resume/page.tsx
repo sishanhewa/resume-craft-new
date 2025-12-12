@@ -1,26 +1,123 @@
 "use client";
 
-import { useState } from "react";
-import { FileText, Check, PenLine, Eye } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { FileText, Check, PenLine, Eye, Save, Loader2, Home } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createBrowserClient } from "@supabase/ssr";
+import { toast } from "sonner";
+import { debounce } from "lodash";
+
 import { ResumeForm } from "@/components/resume/ResumeForm";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { ExportButtons } from "@/components/resume/ExportButtons";
+import { Button } from "@/components/ui/button";
 
 import { ResumeChoiceModal } from "@/components/resume/ResumeChoiceModal";
 import { TemplatePreviewCard } from "@/components/resume/TemplatePreviewCard";
 import { createEmptyResumeContent, type ResumeContent } from "@/types/resume";
 import { getTemplateList } from "@/components/resume/templates";
 
+// Define debounce at module level outside component to prevent recreation
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DEBOUNCE_DELAY = 2000;
+
+import { AuthModal } from "@/components/auth/AuthModal";
+
 export default function CreateResumePage() {
-    const [showChoiceModal, setShowChoiceModal] = useState(true);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const resumeId = searchParams.get("id");
+
+    const [showChoiceModal, setShowChoiceModal] = useState(!resumeId);
+    const [showAuthModal, setShowAuthModal] = useState(false); // State for Auth Modal
     const [mobileView, setMobileView] = useState<"form" | "preview">("form");
     const [selectedTemplate, setSelectedTemplate] = useState("professional");
     const [resumeData, setResumeData] = useState<ResumeContent>(
         createEmptyResumeContent()
     );
 
+    // Saving state
+    const [isSaving, setIsSaving] = useState(false);
+    const [lastSaved, setLastSaved] = useState<Date | null>(null);
+    const [currentResumeId, setCurrentResumeId] = useState<string | null>(resumeId);
+    const [userId, setUserId] = useState<string | null>(null);
+
     const templates = getTemplateList();
+
+    const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    // Check auth on mount and handle localStorage
+    useEffect(() => {
+        // 1. Check User
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (session?.user) {
+                setUserId(session.user.id);
+            }
+        });
+
+        // 2. Load from LocalStorage if creating new resume (no ID yet)
+        if (!resumeId) {
+            const savedData = localStorage.getItem("resume-craft-autosave");
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    setResumeData(parsed.resumeData);
+                    setSelectedTemplate(parsed.selectedTemplate || "professional");
+                    toast.info("Restored your unsaved progress");
+                } catch (e) {
+                    console.error("Failed to parse autosave", e);
+                }
+            }
+        }
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [supabase, resumeId]);
+
+    // Autosave to LocalStorage
+    useEffect(() => {
+        if (!resumeId) {
+            const debouncedSave = setTimeout(() => {
+                localStorage.setItem("resume-craft-autosave", JSON.stringify({
+                    resumeData,
+                    selectedTemplate
+                }));
+            }, 1000);
+            return () => clearTimeout(debouncedSave);
+        }
+    }, [resumeData, selectedTemplate, resumeId]);
+
+    // Load resume if ID exists
+    useEffect(() => {
+        if (resumeId) {
+            const fetchResume = async () => {
+                const { data, error } = await supabase
+                    .from("resumes")
+                    .select("*")
+                    .eq("id", resumeId)
+                    .single();
+
+                if (data) {
+                    setResumeData(data.content as ResumeContent);
+                    setCurrentResumeId(data.id);
+                    if (data.template_id) {
+                        setSelectedTemplate(data.template_id);
+                    }
+                }
+
+                if (error) {
+                    toast.error("Error loading resume");
+                    console.error(error);
+                }
+            };
+            fetchResume();
+        }
+    }, [resumeId, supabase]);
 
     // Handle imported resume data
     const handleImport = (importedData: Partial<ResumeContent>) => {
@@ -47,6 +144,68 @@ export default function CreateResumePage() {
         setShowChoiceModal(false);
     };
 
+    const saveResume = async () => {
+        if (!userId) {
+            // Show Auth Modal instead of redirecting
+            setShowAuthModal(true);
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const title = resumeData.header.fullName
+                ? `${resumeData.header.fullName}'s Resume`
+                : "Untitled Resume";
+
+            const payload = {
+                user_id: userId,
+                title,
+                content: resumeData,
+                template_id: selectedTemplate,
+                updated_at: new Date().toISOString(),
+            };
+
+            const { data, error } = await supabase
+                .from("resumes")
+                .upsert(
+                    currentResumeId ? { id: currentResumeId, ...payload } : payload
+                )
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            if (data) {
+                setCurrentResumeId(data.id);
+                setLastSaved(new Date());
+
+                // Clear autosave as we have successfully persisted to DB
+                localStorage.removeItem("resume-craft-autosave");
+
+                if (!currentResumeId) {
+                    // Update URL without refresh if creating new
+                    window.history.replaceState(null, "", `/create-resume?id=${data.id}`);
+                }
+            }
+        } catch (error) {
+            console.error("Error saving resume:", error);
+            toast.error("Failed to save resume");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Manual Save Button
+    const handleManualSave = () => {
+        if (!userId) {
+            toast.info("Please sign in to save your resume");
+            setShowAuthModal(true);
+            return;
+        }
+        saveResume();
+        toast.success("Resume saved successfully");
+    };
+
     return (
         <>
             {/* Resume Creation Choice Modal */}
@@ -54,51 +213,73 @@ export default function CreateResumePage() {
                 isOpen={showChoiceModal}
                 onStartFromScratch={handleStartFromScratch}
                 onImport={handleImport}
+                isAuthenticated={!!userId}
+                onAuthRequested={() => setShowAuthModal(true)}
+            />
+
+            {/* Auth Modal */}
+            <AuthModal
+                isOpen={showAuthModal}
+                onClose={() => setShowAuthModal(false)}
             />
 
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-zinc-950 dark:via-black dark:to-zinc-900">
                 {/* Navigation */}
                 <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-black/70 border-b border-white/20 dark:border-white/10">
                     <div className="max-w-[1800px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
-                                <FileText className="w-4 h-4 text-white" />
-                            </div>
+                        <Link href={userId ? "/dashboard" : "/"} className="flex items-center gap-2 group">
+                            {userId ? <Home className="w-5 h-5 text-zinc-500 group-hover:text-zinc-900 dark:text-zinc-400 dark:group-hover:text-white transition-colors" /> : (
+                                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
+                                    <FileText className="w-4 h-4 text-white" />
+                                </div>
+                            )}
                             <span className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
-                                ResumeCraft
+                                {userId ? "Dashboard" : "ResumeCraft"}
                             </span>
                         </Link>
 
-                        {/* Mobile Toggle - Only visible on mobile */}
-                        <div className="flex lg:hidden bg-zinc-100 dark:bg-zinc-800 rounded-full p-1">
-                            <button
-                                onClick={() => setMobileView("form")}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${mobileView === "form"
-                                    ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-white"
-                                    : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-                                    }`}
-                            >
-                                <PenLine className="w-4 h-4" />
-                                Edit
-                            </button>
-                            <button
-                                onClick={() => setMobileView("preview")}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${mobileView === "preview"
-                                    ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-white"
-                                    : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-                                    }`}
-                            >
-                                <Eye className="w-4 h-4" />
-                                Preview
-                            </button>
-                        </div>
+                        {/* Save Info & Actions */}
+                        <div className="flex items-center gap-3">
+                            <div className="hidden md:flex flex-col items-end mr-2">
+                                <span className="text-xs text-zinc-400 font-medium">
+                                    {isSaving ? "Saving..." : lastSaved ? `Saved ${lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : userId ? "Unsaved changes" : ""}
+                                </span>
+                            </div>
 
-                        {/* Desktop label */}
-                        <div className="hidden lg:flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                            <span className="flex items-center gap-1">
-                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                                Live Preview
-                            </span>
+                            <Button
+                                onClick={handleManualSave}
+                                variant="outline"
+                                size="sm"
+                                disabled={isSaving}
+                                className="hidden sm:flex"
+                            >
+                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                                {userId ? "Save" : "Login to Save"}
+                            </Button>
+
+                            {/* Mobile Toggle */}
+                            <div className="flex lg:hidden bg-zinc-100 dark:bg-zinc-800 rounded-full p-1 ml-2">
+                                <button
+                                    onClick={() => setMobileView("form")}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${mobileView === "form"
+                                        ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-white"
+                                        : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                                        }`}
+                                >
+                                    <PenLine className="w-4 h-4" />
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => setMobileView("preview")}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${mobileView === "preview"
+                                        ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-white"
+                                        : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                                        }`}
+                                >
+                                    <Eye className="w-4 h-4" />
+                                    Preview
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </nav>

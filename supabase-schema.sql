@@ -76,6 +76,12 @@ CREATE POLICY "Users can delete own resumes"
   USING (auth.uid() = user_id);
 
 -- ============================================
+-- 5. NEW: TEMPLATE ID COLUMN (Run this if you haven't!)
+-- ============================================
+-- This saves which template (e.g. 'professional', 'creative') the user selected.
+ALTER TABLE resumes ADD COLUMN IF NOT EXISTS template_id TEXT DEFAULT 'professional';
+
+-- ============================================
 -- VERIFICATION QUERIES (Optional)
 -- ============================================
 -- Run these to verify your setup:
