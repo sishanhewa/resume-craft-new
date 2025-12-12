@@ -1,6 +1,7 @@
 "use client";
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -15,6 +16,7 @@ import { testAction } from "@/actions/test";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [debugLog, setDebugLog] = useState<string | null>(null);
@@ -50,6 +52,7 @@ export default function Home() {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
+      setUserEmail(user?.email || null);
       setLoading(false);
     };
     checkUser();
@@ -122,7 +125,7 @@ export default function Home() {
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-red-600 dark:text-red-500 mb-2">
-            BUILD TEST
+            BUILD TEST {userEmail ? `(${userEmail})` : ''}
           </h1>
 
           {/* Debug Controls */}
