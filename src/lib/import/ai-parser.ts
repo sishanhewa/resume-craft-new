@@ -114,28 +114,40 @@ export async function parseResumeWithAI(rawText: string): Promise<Partial<Resume
       model: "gemini-2.5-flash",
       generationConfig: {
         temperature: 0.1,
-        maxOutputTokens: 4096,
+        maxOutputTokens: 8192,
         responseMimeType: "application/json",
       },
     });
 
-    // LOG: Raw text being sent to AI
-    console.log("=== AI PARSER INPUT ===");
-    console.log("Raw text length:", rawText.length);
-    // ... logs ...
+    // ... LOGS ...
 
-    // ... prompt ...
     const prompt = `${RESUME_PARSE_PROMPT}\n\nHere is the resume text to parse:\n\n${rawText}`;
 
     const result = await model.generateContent(prompt);
     const response = result.response;
-    const jsonText = response.text();
+    let jsonText = response.text();
 
     // LOG: AI response
     console.log("=== AI PARSER OUTPUT ===");
-    console.log("JSON response:", jsonText);
+    console.log("JSON response length:", jsonText.length);
+    console.log("JSON response (snippet):", jsonText.substring(0, 100) + "..." + jsonText.substring(jsonText.length - 100));
 
-    const parsed = JSON.parse(jsonText);
+    // Cleanup: Remove markdown code blocks if present (common AI artifact)
+    jsonText = jsonText.replace(/```json/g, "").replace(/```/g, "").trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (parseError) {
+      console.error("JSON Parse Error:", parseError);
+      console.error("Failed JSON Content:", jsonText);
+      throw new Error(`Failed to parse AI response as JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+    }
+
+    // LOG: Parsed object
+    console.log("=== PARSED OBJECT ===");
+    console.log(JSON.stringify(parsed, null, 2));
+    console.log("=====================");
 
     // ... addIds logic ...
     const addIds = (arr: any[]) => arr ? arr.map(item => ({
