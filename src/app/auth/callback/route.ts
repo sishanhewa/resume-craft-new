@@ -1,5 +1,8 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
+
+export const runtime = 'edge';
+
 import { createServerClient } from "@supabase/ssr";
 
 // Re-write to use the recommended cookie handling for route handlers

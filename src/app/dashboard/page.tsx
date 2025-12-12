@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
+
+export const runtime = 'edge';
 import { cookies } from "next/headers";
 import { FileText, LogOut, User, Home } from "lucide-react";
 import Link from "next/link";
