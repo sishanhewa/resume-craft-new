@@ -9,6 +9,7 @@ interface ResumePreviewProps {
     templateId?: string;
     onBack?: () => void;
     hideBackButton?: boolean;
+    isThumbnail?: boolean;
 }
 
 export function ResumePreview({
@@ -16,6 +17,7 @@ export function ResumePreview({
     templateId = "professional",
     onBack,
     hideBackButton = false,
+    isThumbnail = false,
 }: ResumePreviewProps) {
     const template = getTemplate(templateId);
     const TemplateComponent = template.component;
@@ -48,8 +50,8 @@ export function ResumePreview({
                 </button>
             )}
 
-            {/* Template Name - only show if back button is visible */}
-            {!hideBackButton && (
+            {/* Template Name - only show if back button is visible and not in thumbnail mode */}
+            {!hideBackButton && !isThumbnail && (
                 <div className="text-center">
                     <span className="text-sm text-zinc-500 dark:text-zinc-400">
                         Template: <span className="font-medium">{template.name}</span>
@@ -61,6 +63,7 @@ export function ResumePreview({
             <PaginatedResume
                 sidebarWidth={sidebarConfig?.width}
                 sidebarColor={sidebarConfig?.color}
+                isThumbnail={isThumbnail}
             >
                 <TemplateComponent data={data} />
             </PaginatedResume>

@@ -26,22 +26,42 @@ export function TemplatePreviewCard({
                 }`}
         >
             {/* Mini Preview Container - First page only */}
-            <div className="aspect-[3/4] rounded-lg overflow-hidden mb-2 bg-white shadow-inner relative">
-                {/* Scaled down preview */}
+            <div
+                className="rounded-lg mb-2 bg-white shadow-inner relative"
+                style={{
+                    width: '128px',
+                    height: '157px', /* 1123 * 0.14 ≈ 157 */
+                    overflow: 'hidden',
+                }}
+            >
+                {/* Clip wrapper */}
                 <div
-                    className="absolute inset-0 origin-top-left pointer-events-none overflow-hidden"
                     style={{
-                        transform: "scale(0.14)",
-                        width: "210mm",
-                        height: "297mm",
-                        maxHeight: "297mm", /* Clip to first page */
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '128px',
+                        height: '157px',
+                        overflow: 'hidden',
                     }}
                 >
-                    <ResumePreview
-                        data={sampleResumeData}
-                        templateId={templateId}
-                        hideBackButton={true}
-                    />
+                    <div
+                        className="origin-top-left pointer-events-none"
+                        style={{
+                            transform: "scale(0.14)",
+                            width: "794px",
+                            height: "1123px",
+                        }}
+                    >
+                        <div style={{ width: '794px', height: '1123px', overflow: 'hidden' }}>
+                            <ResumePreview
+                                data={sampleResumeData}
+                                templateId={templateId}
+                                hideBackButton={true}
+                                isThumbnail={true}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 
