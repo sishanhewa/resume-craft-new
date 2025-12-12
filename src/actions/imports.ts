@@ -3,7 +3,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-export async function checkImportLimit() {
+try {
     const cookieStore = await cookies();
 
     const supabase = createServerClient(
@@ -27,10 +27,11 @@ export async function checkImportLimit() {
         }
     );
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (!user) {
-        return { allowed: false, error: "Unauthorized" };
+    if (authError || !user) {
+        console.error("Auth error in checkImportLimit:", authError);
+        return { allowed: false, error: "Unauthorized: Could not identify user" };
     }
 
     // Check imports in last 5 minutes
@@ -76,6 +77,10 @@ export async function checkImportLimit() {
         remaining: limit - count,
         resetTime
     };
+} catch (e) {
+    console.error("Critical error in checkImportLimit:", e);
+    return { allowed: false, error: `Critical Server Error: ${e instanceof Error ? e.message : 'Unknown'}` };
+}
 }
 
 export async function logImportAttempt(fileType: string) {

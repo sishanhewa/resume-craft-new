@@ -85,8 +85,10 @@ export function ResumeChoiceModal({
                 return;
             }
         } catch (err) {
-            toast.error("Failed to check import limit");
-            setError("Failed to check import limit");
+            console.error("Error checking import limit (Client Catch):", err);
+            const msg = err instanceof Error ? err.message : "Current error";
+            toast.error(`Failed to check import limit: ${msg}`);
+            setError(`Failed to check import limit: ${msg}`);
             return;
         } finally {
             setIsCheckingLimit(false);
