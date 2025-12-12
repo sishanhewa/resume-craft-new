@@ -111,7 +111,7 @@ export async function parseResumeWithAI(rawText: string): Promise<Partial<Resume
     const genAI = new GoogleGenerativeAI(apiKey);
     // ... setup model ...
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.5-flash",
       generationConfig: {
         temperature: 0.1,
         maxOutputTokens: 4096,
