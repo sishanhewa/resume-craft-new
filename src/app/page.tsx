@@ -1,4 +1,7 @@
 "use client";
+
+export const runtime = 'edge';
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FileText, Sparkles, Download, ArrowRight, LayoutDashboard } from "lucide-react";
