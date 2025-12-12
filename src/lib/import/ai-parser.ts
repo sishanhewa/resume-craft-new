@@ -99,16 +99,17 @@ Rules:
  * Server Action to parse resume text using Gemini AI
  * Server-side only - keeps API key secure
  */
-export async function parseResumeWithAI(rawText: string): Promise<Partial<ResumeContent>> {
+export async function parseResumeWithAI(rawText: string): Promise<Partial<ResumeContent> | { error: string }> {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY not configured in environment variables.");
+    console.error("Missing GEMINI_API_KEY");
+    return { error: "Configuration Error: Missing GEMINI_API_KEY on server." };
   }
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-
+    // ... setup model ...
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
       generationConfig: {
@@ -121,9 +122,9 @@ export async function parseResumeWithAI(rawText: string): Promise<Partial<Resume
     // LOG: Raw text being sent to AI
     console.log("=== AI PARSER INPUT ===");
     console.log("Raw text length:", rawText.length);
-    console.log("First 500 chars:", rawText.substring(0, 500));
-    console.log("========================");
+    // ... logs ...
 
+    // ... prompt ...
     const prompt = `${RESUME_PARSE_PROMPT}\n\nHere is the resume text to parse:\n\n${rawText}`;
 
     const result = await model.generateContent(prompt);
@@ -133,16 +134,10 @@ export async function parseResumeWithAI(rawText: string): Promise<Partial<Resume
     // LOG: AI response
     console.log("=== AI PARSER OUTPUT ===");
     console.log("JSON response:", jsonText);
-    console.log("=========================");
 
     const parsed = JSON.parse(jsonText);
 
-    // LOG: Parsed object
-    console.log("=== PARSED OBJECT ===");
-    console.log(JSON.stringify(parsed, null, 2));
-    console.log("=====================");
-
-    // Add IDs to arrays
+    // ... addIds logic ...
     const addIds = (arr: any[]) => arr ? arr.map(item => ({
       ...item,
       id: crypto.randomUUID(),
@@ -165,6 +160,7 @@ export async function parseResumeWithAI(rawText: string): Promise<Partial<Resume
     };
   } catch (error) {
     console.error("AI parsing error:", error);
-    throw error;
+    // SAFELY RETURN ERROR instead of throwing (bypasses Next.js masking)
+    return { error: `Gemini API Usage Error: ${error instanceof Error ? error.message : String(error)}` };
   }
 }

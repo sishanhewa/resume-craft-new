@@ -15,7 +15,11 @@ export async function parseDocx(file: File): Promise<Partial<ResumeContent>> {
 
         // Try AI parsing first (Server Action has access to env vars)
         try {
-            return await parseResumeWithAI(rawText);
+            const aiResult = await parseResumeWithAI(rawText);
+            if ('error' in aiResult && aiResult.error) {
+                throw new Error(aiResult.error);
+            }
+            return aiResult as Partial<ResumeContent>;
         } catch (aiError) {
             console.error("AI parsing failed (Gemini):", aiError);
             throw new Error(`Gemini AI Error: ${aiError instanceof Error ? aiError.message : String(aiError)}`);
