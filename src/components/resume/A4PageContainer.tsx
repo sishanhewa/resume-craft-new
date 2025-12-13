@@ -6,15 +6,32 @@ import { useRef, useEffect, useState, ReactNode } from "react";
 export const A4_WIDTH_PX = 794;
 export const A4_HEIGHT_PX = 1123;
 
+// Page break padding configuration
+const PAGE_PADDING = 32; // Padding at top/bottom of page breaks (px)
+const ORPHAN_THRESHOLD = 80; // If section header is within this many px of page bottom, move it
+
 // For scaled preview display
 const DESKTOP_SCALE = 0.75;
 const MOBILE_PADDING = 32; // px
+
+// Export the dimensions
+export const A4_DIMENSIONS = {
+    width: A4_WIDTH_PX,
+    height: A4_HEIGHT_PX,
+    widthMm: 210,
+    heightMm: 297,
+};
 
 interface PaginatedResumeProps {
     children: ReactNode;
     sidebarWidth?: number;
     sidebarColor?: string;
     isThumbnail?: boolean;
+}
+
+interface PageInfo {
+    offset: number;      // Content Y offset for this page
+    viewHeight: number;  // Visible content height for this page
 }
 
 export function PaginatedResume({
@@ -25,83 +42,98 @@ export function PaginatedResume({
 }: PaginatedResumeProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const measureRef = useRef<HTMLDivElement>(null);
-    const [pageCount, setPageCount] = useState(1);
     const [scale, setScale] = useState(isThumbnail ? 1 : DESKTOP_SCALE);
+    const [pages, setPages] = useState<PageInfo[]>([]);
+    const [isCalculating, setIsCalculating] = useState(true);
 
-    // Calculate pages logic
+    // Visible content height per page
+    const visibleHeightFirstPage = A4_HEIGHT_PX - PAGE_PADDING; // Bottom padding only
+    const visibleHeightOtherPages = A4_HEIGHT_PX - (PAGE_PADDING * 2); // Top and bottom padding
+
+    // Calculate pages with smart section detection
     useEffect(() => {
+        if (!measureRef.current || isThumbnail) {
+            setIsCalculating(false);
+            return;
+        }
+
         const calculatePages = () => {
-            // --- 1. Reset pagination styles globally ---
-            const allItems = containerRef.current?.querySelectorAll('.resume-section-item');
-            allItems?.forEach((item) => {
-                (item as HTMLElement).style.paddingTop = '0px';
-            });
+            const measureContainer = measureRef.current;
+            if (!measureContainer) return;
 
-            // --- 2. Repaginate items sequentially based on offsetTop ---
-            // We target ALL content wrappers to ensure every page copy is identical
-            const wrappers = containerRef.current?.querySelectorAll('.page-content-wrapper');
-            console.log(`[Pagination] Found ${wrappers?.length} page wrappers`);
+            const totalHeight = measureContainer.scrollHeight;
+            const containerRect = measureContainer.getBoundingClientRect();
 
-            wrappers?.forEach((wrapper, wIndex) => {
-                const items = wrapper.querySelectorAll('.resume-section-item');
-                // Only log if we find items, to reduce noise
-                if (items.length > 0) {
-                    // console.log(`[Pagination] Wrapper ${wIndex}: processing ${items.length} items`);
-                }
+            // Get all section headers for orphan detection
+            const sectionHeaders = measureContainer.querySelectorAll('section > h2, section > div > h2, [data-section-header]');
 
-                const wrapperRect = wrapper.getBoundingClientRect();
+            const pageInfos: PageInfo[] = [];
+            let currentOffset = 0;
+            let isFirstPage = true;
 
-                items.forEach((item) => {
-                    // Use getBoundingClientRect for precise visual positioning relative to the wrapper
-                    const itemRect = item.getBoundingClientRect();
-                    const relTop = itemRect.top - wrapperRect.top;
-                    const height = itemRect.height;
-                    const relBottom = relTop + height;
+            while (currentOffset < totalHeight) {
+                const maxVisibleHeight = isFirstPage ? visibleHeightFirstPage : visibleHeightOtherPages;
+                let actualViewHeight = maxVisibleHeight;
 
-                    const PAGE_HEIGHT = A4_HEIGHT_PX;
-                    const BOTTOM_MARGIN = 60;
+                // Don't exceed remaining content
+                const remainingContent = totalHeight - currentOffset;
+                if (remainingContent <= 0) break;
+                actualViewHeight = Math.min(actualViewHeight, remainingContent);
 
-                    const startPage = Math.floor(relTop / PAGE_HEIGHT);
-                    const endPage = Math.floor(relBottom / PAGE_HEIGHT);
+                // Check if any section header falls in the "danger zone" near bottom of this page
+                const pageBottomY = currentOffset + actualViewHeight;
+                const dangerZoneStart = pageBottomY - ORPHAN_THRESHOLD;
 
-                    const bottomInPage = relBottom - (startPage * PAGE_HEIGHT);
+                sectionHeaders.forEach((header) => {
+                    const headerRect = header.getBoundingClientRect();
+                    const headerTop = headerRect.top - containerRect.top;
 
-                    const crossesLine = startPage !== endPage;
-                    const entersDangerZone = bottomInPage > (PAGE_HEIGHT - BOTTOM_MARGIN);
-
-                    if (crossesLine || entersDangerZone) {
-                        console.log(`[Pagination] Push: Item at y=${Math.round(relTop)} (Page ${startPage}) -> Page ${startPage + 1}`);
-                        const breakLine = (startPage + 1) * PAGE_HEIGHT;
-                        const pushDown = breakLine - relTop + 40;
-                        (item as HTMLElement).style.paddingTop = `${pushDown}px`;
+                    // If header starts in the danger zone (near bottom of page)
+                    if (headerTop > dangerZoneStart && headerTop < pageBottomY) {
+                        // Reduce this page's view height to end before this header
+                        const reducedHeight = headerTop - currentOffset;
+                        if (reducedHeight > 100) { // Only if it leaves meaningful content
+                            actualViewHeight = Math.min(actualViewHeight, reducedHeight);
+                        }
                     }
                 });
-            });
 
-            // --- 3. Recalculate total height (based on the first/measured instance) ---
-            if (measureRef.current) {
-                const contentHeight = measureRef.current.scrollHeight;
-                const pages = Math.max(1, Math.ceil(contentHeight / A4_HEIGHT_PX));
-                setPageCount(pages);
+                // Only add page if it has content
+                if (actualViewHeight > 0) {
+                    pageInfos.push({
+                        offset: currentOffset,
+                        viewHeight: actualViewHeight,
+                    });
+                }
+
+                currentOffset += actualViewHeight;
+                isFirstPage = false;
             }
+
+            // Ensure at least one page
+            if (pageInfos.length === 0) {
+                pageInfos.push({
+                    offset: 0,
+                    viewHeight: Math.min(totalHeight, visibleHeightFirstPage),
+                });
+            }
+
+            setPages(pageInfos);
+            setIsCalculating(false);
         };
 
         const timer = setTimeout(calculatePages, 100);
-        // Observe both resizing AND mutations (content changes)
         const observer = new ResizeObserver(() => {
-            // Debounce slightly to avoid flicker loops
             setTimeout(calculatePages, 50);
         });
 
-        if (measureRef.current) {
-            observer.observe(measureRef.current);
-        }
+        observer.observe(measureRef.current);
 
         return () => {
             clearTimeout(timer);
             observer.disconnect();
         };
-    }, [children]);
+    }, [children, visibleHeightFirstPage, visibleHeightOtherPages, isThumbnail]);
 
     // Responsive scaling logic
     useEffect(() => {
@@ -110,29 +142,20 @@ export function PaginatedResume({
         const updateScale = () => {
             if (containerRef.current) {
                 const containerWidth = containerRef.current.clientWidth;
-                // Calculate max available width including some padding
                 const maxAvailableWidth = containerWidth - MOBILE_PADDING;
-
-                // If container is smaller than scaled A4, shrink it
-                // Default to DESKTOP_SCALE on larger screens
                 const targetScale = Math.min(
                     DESKTOP_SCALE,
                     maxAvailableWidth / A4_WIDTH_PX
                 );
-
                 setScale(targetScale);
             }
         };
 
-        // Initial calculation
         updateScale();
-
-        // Listen for resize
         const resizeObserver = new ResizeObserver(updateScale);
         if (containerRef.current) {
             resizeObserver.observe(containerRef.current);
         }
-
         window.addEventListener('resize', updateScale);
 
         return () => {
@@ -141,51 +164,157 @@ export function PaginatedResume({
         };
     }, [isThumbnail]);
 
-    // In thumbnail mode, we only show first page, no scale (handled externally), no spacers
-    const displayPageCount = isThumbnail ? 1 : pageCount;
-    // For thumbnail, keep scale 1 (handled by parent typically) or let it fit
-    // But usually thumbnails are just fixed scale or transform-origin center
-    // The previous code kept scale 1 for thumbnail.
     const currentScale = isThumbnail ? 1 : scale;
+    const pageCount = pages.length;
+
+    // For thumbnails, render simple preview
+    if (isThumbnail) {
+        return (
+            <div ref={containerRef} className="flex flex-col items-center w-full">
+                <div
+                    style={{
+                        width: `${A4_WIDTH_PX}px`,
+                        height: `${A4_HEIGHT_PX}px`,
+                        overflow: "hidden",
+                        backgroundColor: "white",
+                        position: "relative",
+                    }}
+                    data-resume-content="true"
+                >
+                    {sidebarColor && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: `${sidebarWidth}px`,
+                                height: "100%",
+                                backgroundColor: sidebarColor,
+                                zIndex: 1,
+                            }}
+                        />
+                    )}
+                    <div style={{ position: "relative", zIndex: 2 }}>{children}</div>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div
-            ref={containerRef}
-            className={`flex flex-col items-center w-full ${isThumbnail ? '' : 'gap-4'}`}
-        >
-            {/* Page indicator - Hide in thumbnail mode */}
-            {!isThumbnail && (
+        <div ref={containerRef} className="flex flex-col items-center w-full">
+            {/* Hidden measurement container */}
+            <div
+                ref={measureRef}
+                style={{
+                    position: "absolute",
+                    visibility: "hidden",
+                    width: `${A4_WIDTH_PX}px`,
+                    left: "-9999px",
+                    pointerEvents: "none",
+                }}
+                aria-hidden="true"
+            >
+                {children}
+            </div>
+
+            {/* Page count indicator */}
+            {!isCalculating && pageCount > 0 && (
                 <div className="mb-4 text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-500" />
                     {pageCount} page{pageCount > 1 ? "s" : ""} • A4 Format
                 </div>
             )}
 
-            {/* Scaled container for all pages */}
+            {/* Scaled pages container */}
             <div
                 style={{
                     transform: `scale(${currentScale})`,
-                    transformOrigin: "top center", // Center transform for better mobile alignment
+                    transformOrigin: "top center",
                     width: `${A4_WIDTH_PX}px`,
                 }}
                 className="transition-transform duration-200 ease-out"
             >
                 {/* Render each page */}
-                {Array.from({ length: displayPageCount }).map((_, pageIndex) => (
+                {pages.map((page, pageIndex) => {
+                    const isFirstPage = pageIndex === 0;
+                    const topPadding = isFirstPage ? 0 : PAGE_PADDING;
+
+                    return (
+                        <div
+                            key={pageIndex}
+                            className="mb-8 last:mb-0 relative"
+                            style={{
+                                width: `${A4_WIDTH_PX}px`,
+                                height: `${A4_HEIGHT_PX}px`,
+                                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                                borderRadius: "4px",
+                                overflow: "hidden",
+                                backgroundColor: "white",
+                            }}
+                            data-resume-content="true"
+                        >
+                            {/* Sidebar background */}
+                            {sidebarColor && (
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        width: `${sidebarWidth}px`,
+                                        height: "100%",
+                                        backgroundColor: sidebarColor,
+                                        zIndex: 1,
+                                    }}
+                                />
+                            )}
+
+                            {/* Content viewport */}
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: topPadding,
+                                    left: 0,
+                                    right: 0,
+                                    height: `${page.viewHeight}px`,
+                                    overflow: "hidden",
+                                    zIndex: 2,
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        position: "relative",
+                                        width: `${A4_WIDTH_PX}px`,
+                                        transform: `translateY(-${page.offset}px)`,
+                                    }}
+                                >
+                                    {children}
+                                </div>
+                            </div>
+
+                            {/* Page number */}
+                            <div
+                                className="absolute bottom-2 left-0 right-0 text-center text-xs text-zinc-400"
+                                style={{ zIndex: 10 }}
+                            >
+                                Page {pageIndex + 1}{pageCount > 1 ? ` of ${pageCount}` : ""}
+                            </div>
+                        </div>
+                    );
+                })}
+
+                {/* Loading placeholder */}
+                {isCalculating && (
                     <div
-                        key={pageIndex}
-                        className={`${isThumbnail ? '' : 'mb-8'} last:mb-0 relative`}
+                        className="relative"
                         style={{
                             width: `${A4_WIDTH_PX}px`,
-                            height: `${A4_HEIGHT_PX}px`,
-                            boxShadow: isThumbnail ? "none" : "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-                            borderRadius: isThumbnail ? "0" : "4px",
-                            overflow: "hidden",
+                            minHeight: `${A4_HEIGHT_PX}px`,
+                            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                            borderRadius: "4px",
                             backgroundColor: "white",
                         }}
                         data-resume-content="true"
                     >
-                        {/* Sidebar background - renders on EVERY page to fill full height */}
                         {sidebarColor && (
                             <div
                                 style={{
@@ -199,66 +328,19 @@ export function PaginatedResume({
                                 }}
                             />
                         )}
-
-                        {/* Content window - shifts up for each page */}
-                        <div
-                            ref={pageIndex === 0 ? measureRef : undefined}
-                            className="page-content-wrapper"
-                            style={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                width: `${A4_WIDTH_PX}px`,
-                                minHeight: `${A4_HEIGHT_PX}px`,
-                                transform: `translateY(-${pageIndex * A4_HEIGHT_PX}px)`,
-                                zIndex: 2,
-                            }}
-                        >
-                            {children}
-                        </div>
-
-                        {/* Page number footer - Hide in thumbnail */}
-                        {!isThumbnail && (
-                            <div
-                                className="absolute bottom-2 left-0 right-0 text-center text-xs text-zinc-400"
-                                style={{ zIndex: 10 }}
-                            >
-                                Page {pageIndex + 1}{pageCount > 1 ? ` of ${pageCount}` : ""}
-                            </div>
-                        )}
+                        <div style={{ position: "relative", zIndex: 2 }}>{children}</div>
                     </div>
-                ))}
+                )}
             </div>
 
-            {/* Spacer to account for scale transform - Hide in thumbnail */}
-            {!isThumbnail && (
-                <div style={{
-                    // Calculate height based on number of pages + margins * scale difference
-                    height: `${(A4_HEIGHT_PX * pageCount * currentScale) + (32 * (pageCount - 1) * currentScale) - (A4_HEIGHT_PX * pageCount) + 100}px`,
-                    display: 'none' // We can probably just rely on the transformed height if we handle it differently, 
-                    // but usually scaling keeps original layout flow size. 
-                    // Let's try simpler spacer logic or just margin-bottom compensation.
-                }} />
-            )}
-            {/* 
-                Since we transform-origin: top center, the element takes up its original space in the flow.
-                We need to "pull up" the content below it.
-                The visual height is: (TotalHeight * scale)
-                The layout height is: TotalHeight
-                So we need negative margin of: TotalHeight * (1 - scale)
-             */}
-            {!isThumbnail && (
-                <div style={{ marginTop: `-${(A4_HEIGHT_PX * pageCount + (32 * (pageCount - 1))) * (1 - currentScale)}px` }} />
+            {/* Compensate for scaling */}
+            {!isCalculating && pageCount > 0 && (
+                <div
+                    style={{
+                        marginTop: `-${(A4_HEIGHT_PX * pageCount + 32 * (pageCount - 1)) * (1 - currentScale)}px`,
+                    }}
+                />
             )}
         </div>
     );
 }
-
-// Export the dimensions
-export const A4_DIMENSIONS = {
-    width: A4_WIDTH_PX,
-    height: A4_HEIGHT_PX,
-    widthMm: 210,
-    heightMm: 297,
-};
-

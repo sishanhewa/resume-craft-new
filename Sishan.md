@@ -1,5 +1,52 @@
 # ResumeCraft Development Log
 
+## 2025-12-13 (Continued)
+
+### Smart A4 Pagination System
+
+#### 1. Orphan Header Detection
+- **Component**: `A4PageContainer.tsx`
+- **Logic**: Detects section headers (`<h2>`) within 80px of page bottom
+- If header is near bottom, page is shortened to move entire section to next page
+- Prevents "orphaned" headers appearing alone at page bottom
+
+#### 2. Continuous Page Flow
+- Replaced section-based page breaks with smooth continuous flow
+- Pages now calculate based on actual content height
+- Fixed blank page generation bug (pages only created when content exists)
+- Proper viewport clipping eliminates content duplication at page boundaries
+
+#### 3. Optional Sections for All Templates
+Added all 8 optional sections to **Classic** and **Creative** templates:
+
+| Section | Classic Style | Creative Style |
+|---------|--------------|----------------|
+| 🚀 Projects | Clean list with tech tags | Orange-red gradient cards |
+| 📜 Certifications | Simple list | Green-emerald gradient cards |
+| 🏆 Awards | Traditional layout | Yellow-amber gradient cards |
+| ❤️ Volunteer | List with dates | Rose timeline with dots |
+| 📰 Publications | List with links | Sky-blue gradient cards |
+| ⭐ Interests | Gray tag pills | Rose-pink rounded pills |
+| 🔗 Portfolio | Inline links | Violet-fuchsia cards |
+| ✏️ Custom Sections | Bulleted list | Slate gradient cards |
+
+#### 4. Page Configuration
+```ts
+const PAGE_PADDING = 32;        // Padding at page breaks
+const ORPHAN_THRESHOLD = 80;    // Move section if header within 80px of bottom
+const A4_WIDTH_PX = 794;        // A4 width at 96 DPI
+const A4_HEIGHT_PX = 1123;      // A4 height at 96 DPI
+```
+
+#### Files Modified:
+| File | Changes |
+|------|---------|
+| `src/components/resume/A4PageContainer.tsx` | Complete rewrite: smart pagination, orphan detection, blank page fix |
+| `src/components/resume/templates/classic/ClassicTemplate.tsx` | Added Projects, Certifications + 6 other optional sections |
+| `src/components/resume/templates/creative/CreativeTemplate.tsx` | Added Projects, Certifications + 6 other optional sections with gradient styling |
+
+---
+
 ## 2025-12-13
 
 ### Dashboard Login & Rate Limiting
