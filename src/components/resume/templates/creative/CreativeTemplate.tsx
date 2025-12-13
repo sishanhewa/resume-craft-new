@@ -150,6 +150,27 @@ export function CreativeTemplate({ data }: TemplateProps) {
                             </section>
                         )}
 
+                        {/* Certifications */}
+                        {data.certifications && data.certifications.length > 0 && (
+                            <section className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6">
+                                <h2 className="text-xl font-black text-zinc-800 uppercase tracking-wide mb-4 flex items-center gap-2">
+                                    <span className="w-2 h-8 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full" />
+                                    📜 Certifications
+                                </h2>
+                                <div className="space-y-3">
+                                    {data.certifications.map((cert) => (
+                                        <div key={cert.id} className="bg-white rounded-xl p-4 shadow-sm">
+                                            <p className="font-bold text-zinc-800">{cert.name}</p>
+                                            <p className="text-emerald-600 text-sm font-medium">{cert.issuer} • {cert.date}</p>
+                                            {cert.credentialId && (
+                                                <p className="text-zinc-500 text-xs mt-1">ID: {cert.credentialId}</p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
                         {/* Reference */}
                         {data.reference?.name && (
                             <section className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6">
@@ -166,6 +187,65 @@ export function CreativeTemplate({ data }: TemplateProps) {
                                     {data.reference.phone && (
                                         <p className="text-zinc-600 text-sm mt-2">{data.reference.phone}</p>
                                     )}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Awards */}
+                        {data.awards && data.awards.length > 0 && (
+                            <section className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-6">
+                                <h2 className="text-xl font-black text-zinc-800 uppercase tracking-wide mb-4 flex items-center gap-2">
+                                    <span className="w-2 h-8 bg-gradient-to-b from-yellow-500 to-amber-500 rounded-full" />
+                                    🏆 Awards
+                                </h2>
+                                <div className="space-y-3">
+                                    {data.awards.map((award) => (
+                                        <div key={award.id} className="bg-white rounded-xl p-4 shadow-sm">
+                                            <p className="font-bold text-zinc-800">{award.title}</p>
+                                            <p className="text-amber-600 text-sm font-medium">{award.issuer} • {award.date}</p>
+                                            {award.description && (
+                                                <p className="text-zinc-500 text-sm mt-1">{award.description}</p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Interests */}
+                        {data.interests && data.interests.length > 0 && (
+                            <section className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-6">
+                                <h2 className="text-xl font-black text-zinc-800 uppercase tracking-wide mb-4 flex items-center gap-2">
+                                    <span className="w-2 h-8 bg-gradient-to-b from-rose-500 to-pink-500 rounded-full" />
+                                    ⭐ Interests
+                                </h2>
+                                <div className="flex flex-wrap gap-2">
+                                    {data.interests.filter(Boolean).map((interest, i) => (
+                                        <span
+                                            key={i}
+                                            className="px-4 py-2 bg-white rounded-full text-sm font-semibold text-rose-700 shadow-sm border border-rose-200"
+                                        >
+                                            {interest}
+                                        </span>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Portfolio Links */}
+                        {data.portfolio && data.portfolio.length > 0 && (
+                            <section className="bg-gradient-to-br from-violet-50 to-fuchsia-50 rounded-2xl p-6">
+                                <h2 className="text-xl font-black text-zinc-800 uppercase tracking-wide mb-4 flex items-center gap-2">
+                                    <span className="w-2 h-8 bg-gradient-to-b from-violet-500 to-fuchsia-500 rounded-full" />
+                                    🔗 Portfolio
+                                </h2>
+                                <div className="space-y-2">
+                                    {data.portfolio.map((link) => (
+                                        <div key={link.id} className="bg-white rounded-xl p-3 shadow-sm">
+                                            <p className="font-bold text-zinc-800 text-sm">{link.label}</p>
+                                            <p className="text-violet-600 text-xs break-all">{link.url}</p>
+                                        </div>
+                                    ))}
                                 </div>
                             </section>
                         )}
@@ -244,6 +324,148 @@ export function CreativeTemplate({ data }: TemplateProps) {
                                     ))}
                                 </div>
                             </section>
+                        )}
+
+                        {/* Projects */}
+                        {data.projects && data.projects.length > 0 && (
+                            <section>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white">
+                                        <span className="text-xl">🚀</span>
+                                    </div>
+                                    <h2 className="text-2xl font-black text-zinc-800 uppercase tracking-wide">Projects</h2>
+                                </div>
+                                <div className="grid gap-4">
+                                    {data.projects.map((project) => (
+                                        <div
+                                            key={project.id}
+                                            className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-5"
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h3 className="font-black text-lg text-zinc-800">{project.name}</h3>
+                                                {project.link && (
+                                                    <span className="text-sm font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded-full break-all">
+                                                        Link
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-zinc-600 text-sm mb-2">{project.description}</p>
+                                            {project.technologies.length > 0 && (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {project.technologies.map((tech, i) => (
+                                                        <span key={i} className="px-2 py-1 bg-white rounded-full text-xs font-medium text-orange-700 border border-orange-200">
+                                                            {tech}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {project.link && (
+                                                <p className="text-orange-600 text-xs mt-2 break-all">{project.link}</p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Volunteer Experience */}
+                        {data.volunteer && data.volunteer.length > 0 && (
+                            <section>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-500 flex items-center justify-center text-white">
+                                        <span className="text-xl">❤️</span>
+                                    </div>
+                                    <h2 className="text-2xl font-black text-zinc-800 uppercase tracking-wide">Volunteer</h2>
+                                </div>
+                                <div className="space-y-6 border-l-4 border-rose-300 pl-6">
+                                    {data.volunteer.map((vol, i) => (
+                                        <div key={i} className="relative">
+                                            <div className="absolute -left-8 top-1 w-4 h-4 bg-rose-500 rounded-full border-4 border-white shadow" />
+                                            <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <h3 className="font-black text-lg text-zinc-800">{vol.role}</h3>
+                                                    <span className="text-sm font-bold text-rose-600 bg-rose-100 px-3 py-1 rounded-full">
+                                                        {vol.startDate} - {vol.current ? "Present" : vol.endDate}
+                                                    </span>
+                                                </div>
+                                                <p className="font-semibold text-rose-600 mb-2">{vol.organization}</p>
+                                                {vol.description.length > 0 && (
+                                                    <ul className="text-zinc-600 text-sm space-y-1">
+                                                        {vol.description.filter(d => d).map((desc, j) => (
+                                                            <li key={j} className="flex items-start gap-2">
+                                                                <span className="text-rose-400 mt-1">▸</span>
+                                                                {desc}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Publications */}
+                        {data.publications && data.publications.length > 0 && (
+                            <section>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 flex items-center justify-center text-white">
+                                        <span className="text-xl">📰</span>
+                                    </div>
+                                    <h2 className="text-2xl font-black text-zinc-800 uppercase tracking-wide">Publications</h2>
+                                </div>
+                                <div className="grid gap-4">
+                                    {data.publications.map((pub, i) => (
+                                        <div
+                                            key={i}
+                                            className="bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-200 rounded-xl p-5"
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <h3 className="font-black text-lg text-zinc-800">{pub.title}</h3>
+                                                    <p className="font-semibold text-sky-600">{pub.publisher}</p>
+                                                    {pub.description && (
+                                                        <p className="text-zinc-500 text-sm mt-2">{pub.description}</p>
+                                                    )}
+                                                    {pub.link && (
+                                                        <p className="text-blue-600 text-sm mt-1 break-all">{pub.link}</p>
+                                                    )}
+                                                </div>
+                                                <span className="text-sm font-bold text-blue-700 bg-blue-200 px-3 py-1 rounded-full">
+                                                    {pub.date}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Custom Sections */}
+                        {data.customSections && data.customSections.length > 0 && (
+                            <>
+                                {data.customSections.map((section) => (
+                                    <section key={section.id}>
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-zinc-500 to-slate-600 flex items-center justify-center text-white">
+                                                <span className="text-xl">✏️</span>
+                                            </div>
+                                            <h2 className="text-2xl font-black text-zinc-800 uppercase tracking-wide">{section.title}</h2>
+                                        </div>
+                                        <div className="bg-gradient-to-r from-zinc-50 to-slate-50 border border-zinc-200 rounded-xl p-5">
+                                            <ul className="text-zinc-600 text-sm space-y-2">
+                                                {section.items.filter(Boolean).map((item, i) => (
+                                                    <li key={i} className="flex items-start gap-2">
+                                                        <span className="text-zinc-400 mt-1">▸</span>
+                                                        {item}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </section>
+                                ))}
+                            </>
                         )}
                     </div>
                 </div>

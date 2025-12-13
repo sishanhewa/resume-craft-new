@@ -106,6 +106,56 @@ export function ClassicTemplate({ data }: TemplateProps) {
                     </section>
                 )}
 
+                {/* Projects */}
+                {data.projects && data.projects.length > 0 && (
+                    <section className="mb-8">
+                        <SectionTitle>🚀 Projects</SectionTitle>
+                        <div className="space-y-4">
+                            {data.projects.map((project) => (
+                                <div key={project.id}>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <h3 className="font-bold">{project.name}</h3>
+                                        {project.link && (
+                                            <span className="text-sm text-blue-600 break-all">{project.link}</span>
+                                        )}
+                                    </div>
+                                    <p className="text-zinc-600 text-sm mb-1">{project.description}</p>
+                                    {project.technologies.length > 0 && (
+                                        <div className="flex flex-wrap gap-1">
+                                            {project.technologies.map((tech, i) => (
+                                                <span key={i} className="text-xs bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded">
+                                                    {tech}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Certifications */}
+                {data.certifications && data.certifications.length > 0 && (
+                    <section className="mb-8">
+                        <SectionTitle>📜 Certifications</SectionTitle>
+                        <div className="space-y-3">
+                            {data.certifications.map((cert) => (
+                                <div key={cert.id}>
+                                    <div className="flex justify-between items-baseline">
+                                        <h3 className="font-bold">{cert.name}</h3>
+                                        <span className="text-sm text-zinc-500">{cert.date}</span>
+                                    </div>
+                                    <p className="text-zinc-600 text-sm">{cert.issuer}</p>
+                                    {cert.credentialId && (
+                                        <p className="text-zinc-500 text-xs">ID: {cert.credentialId}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
                 {/* Two Column Footer */}
                 <div className="grid grid-cols-2 gap-12">
                     {/* Skills */}
@@ -153,6 +203,126 @@ export function ClassicTemplate({ data }: TemplateProps) {
                             </p>
                         </div>
                     </section>
+                )}
+
+                {/* Awards */}
+                {data.awards && data.awards.length > 0 && (
+                    <section className="mt-8">
+                        <SectionTitle>🏆 Awards & Achievements</SectionTitle>
+                        <div className="space-y-3">
+                            {data.awards.map((award) => (
+                                <div key={award.id}>
+                                    <div className="flex justify-between items-baseline">
+                                        <h3 className="font-bold">{award.title}</h3>
+                                        <span className="text-sm text-zinc-500">{award.date}</span>
+                                    </div>
+                                    <p className="text-zinc-600 text-sm">{award.issuer}</p>
+                                    {award.description && (
+                                        <p className="text-zinc-500 text-sm mt-1">{award.description}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Volunteer Experience */}
+                {data.volunteer && data.volunteer.length > 0 && (
+                    <section className="mt-8">
+                        <SectionTitle>❤️ Volunteer Experience</SectionTitle>
+                        <div className="space-y-4">
+                            {data.volunteer.map((vol) => (
+                                <div key={vol.id}>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <h3 className="font-bold">{vol.role}</h3>
+                                        <span className="text-sm text-zinc-500">
+                                            {vol.startDate} — {vol.current ? "Present" : vol.endDate}
+                                        </span>
+                                    </div>
+                                    <p className="text-zinc-600 italic mb-2">{vol.organization}</p>
+                                    {vol.description.length > 0 && (
+                                        <ul className="list-disc list-outside ml-5 text-zinc-700 space-y-1 text-sm">
+                                            {vol.description.filter(d => d).map((desc, j) => (
+                                                <li key={j}>{desc}</li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Publications */}
+                {data.publications && data.publications.length > 0 && (
+                    <section className="mt-8">
+                        <SectionTitle>📰 Publications</SectionTitle>
+                        <div className="space-y-3">
+                            {data.publications.map((pub) => (
+                                <div key={pub.id}>
+                                    <div className="flex justify-between items-baseline">
+                                        <h3 className="font-bold">{pub.title}</h3>
+                                        <span className="text-sm text-zinc-500">{pub.date}</span>
+                                    </div>
+                                    <p className="text-zinc-600 text-sm">{pub.publisher}</p>
+                                    {pub.description && (
+                                        <p className="text-zinc-500 text-sm mt-1">{pub.description}</p>
+                                    )}
+                                    {pub.link && (
+                                        <p className="text-blue-600 text-sm mt-1 break-all">{pub.link}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Interests */}
+                {data.interests && data.interests.length > 0 && (
+                    <section className="mt-8">
+                        <SectionTitle>⭐ Interests</SectionTitle>
+                        <div className="flex flex-wrap gap-2">
+                            {data.interests.filter(Boolean).map((interest, i) => (
+                                <span
+                                    key={i}
+                                    className="px-3 py-1 bg-zinc-100 text-zinc-700 text-sm rounded"
+                                >
+                                    {interest}
+                                </span>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Portfolio / Links */}
+                {data.portfolio && data.portfolio.length > 0 && (
+                    <section className="mt-8">
+                        <SectionTitle>🔗 Portfolio / Links</SectionTitle>
+                        <div className="space-y-2">
+                            {data.portfolio.map((link) => (
+                                <div key={link.id} className="flex items-baseline gap-3">
+                                    <span className="font-medium">{link.label}:</span>
+                                    <span className="text-blue-600 text-sm break-all">{link.url}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Custom Sections */}
+                {data.customSections && data.customSections.length > 0 && (
+                    <>
+                        {data.customSections.map((section) => (
+                            <section key={section.id} className="mt-8">
+                                <SectionTitle>✏️ {section.title}</SectionTitle>
+                                <ul className="list-disc list-outside ml-5 text-zinc-700 space-y-1 text-sm">
+                                    {section.items.filter(Boolean).map((item, i) => (
+                                        <li key={i}>{item}</li>
+                                    ))}
+                                </ul>
+                            </section>
+                        ))}
+                    </>
                 )}
             </main>
         </div>

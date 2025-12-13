@@ -23,7 +23,7 @@ export function RightColumn({ data }: RightColumnProps) {
                     <SectionHeader title="Work Experience" />
                     <div className="mt-4 space-y-6">
                         {data.experience.map((exp) => (
-                            <div key={exp.id} className="resume-section-item">
+                            <div key={exp.id}>
                                 <h3 className="font-bold text-sm text-zinc-800 uppercase tracking-wide">
                                     {exp.position || "Position"}
                                 </h3>
@@ -56,7 +56,7 @@ export function RightColumn({ data }: RightColumnProps) {
                     <SectionHeader title="Education" />
                     <div className="mt-4 space-y-4">
                         {data.education.map((edu) => (
-                            <div key={edu.id} className="resume-section-item">
+                            <div key={edu.id}>
                                 <h3 className="font-bold text-sm text-zinc-800 uppercase tracking-wide">
                                     {edu.degree || "Degree"}
                                 </h3>
@@ -84,7 +84,7 @@ export function RightColumn({ data }: RightColumnProps) {
                     <SectionHeader title="Projects" />
                     <div className="mt-4 space-y-4">
                         {data.projects.map((project) => (
-                            <div key={project.id} className="resume-section-item">
+                            <div key={project.id}>
                                 <h3 className="font-bold text-sm text-zinc-800 uppercase tracking-wide">
                                     {project.name}
                                 </h3>
@@ -109,7 +109,7 @@ export function RightColumn({ data }: RightColumnProps) {
                     <SectionHeader title="Volunteer Experience" />
                     <div className="mt-4 space-y-6">
                         {data.volunteer.map((vol) => (
-                            <div key={vol.id} className="resume-section-item">
+                            <div key={vol.id}>
                                 <h3 className="font-bold text-sm text-zinc-800 uppercase tracking-wide">
                                     {vol.role}
                                 </h3>
@@ -142,7 +142,7 @@ export function RightColumn({ data }: RightColumnProps) {
                     <SectionHeader title="Publications" />
                     <div className="mt-4 space-y-3">
                         {data.publications.map((pub) => (
-                            <div key={pub.id} className="resume-section-item">
+                            <div key={pub.id}>
                                 <h3 className="font-bold text-sm text-zinc-800">{pub.title}</h3>
                                 <p className="text-xs text-zinc-500">{pub.publisher} • {pub.date}</p>
                                 {pub.link && <p className="text-xs text-zinc-500 break-all">{pub.link}</p>}

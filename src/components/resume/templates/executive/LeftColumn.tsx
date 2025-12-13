@@ -56,7 +56,7 @@ export function LeftColumn({ data }: LeftColumnProps) {
                     <SectionHeader title="Languages" />
                     <ul className="mt-4 space-y-2">
                         {data.languages.map((lang) => (
-                            <li key={lang.id} className="flex items-start gap-2 text-sm text-zinc-700 resume-section-item">
+                            <li key={lang.id} className="flex items-start gap-2 text-sm text-zinc-700">
                                 <span className="w-1 h-1 rounded-full bg-zinc-400 mt-2 flex-shrink-0" />
                                 <span>
                                     {lang.name}{" "}
@@ -100,7 +100,7 @@ export function LeftColumn({ data }: LeftColumnProps) {
                     <SectionHeader title="Certifications" />
                     <ul className="mt-4 space-y-2">
                         {data.certifications.map((cert) => (
-                            <li key={cert.id} className="text-sm text-zinc-700 resume-section-item">
+                            <li key={cert.id} className="text-sm text-zinc-700">
                                 <p className="font-medium">{cert.name}</p>
                                 <p className="text-zinc-500 text-xs">{cert.issuer} • {cert.date}</p>
                             </li>
@@ -115,7 +115,7 @@ export function LeftColumn({ data }: LeftColumnProps) {
                     <SectionHeader title="Awards" />
                     <ul className="mt-4 space-y-2">
                         {data.awards.map((award) => (
-                            <li key={award.id} className="text-sm text-zinc-700 resume-section-item">
+                            <li key={award.id} className="text-sm text-zinc-700">
                                 <p className="font-medium">{award.title}</p>
                                 <p className="text-zinc-500 text-xs">{award.issuer} • {award.date}</p>
                             </li>
