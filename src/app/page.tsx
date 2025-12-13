@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FileText, Sparkles, Download, ArrowRight, LayoutDashboard } from "lucide-react";
+import { FileText, Sparkles, Download, ArrowRight, LayoutDashboard, Palette, Zap, Cloud, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { TemplateSlider } from "@/components/resume/TemplateSlider";
@@ -125,50 +125,64 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Preview Card */}
+      {/* Animated Stats & Visual Section */}
       <section className="pb-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="relative">
-            {/* Glow effect */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/20 via-cyan-500/20 to-teal-500/20 blur-3xl rounded-3xl" />
+            {/* Animated Glow Orbs */}
+            <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/30 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-cyan-500/30 rounded-full blur-3xl animate-pulse delay-700" />
+            <div className="absolute top-1/2 right-0 w-48 h-48 bg-teal-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
 
-            {/* Glass Card */}
-            <div className="relative backdrop-blur-xl bg-white/60 dark:bg-zinc-900/60 rounded-3xl border border-white/40 dark:border-white/10 shadow-2xl p-8 md:p-12">
-              <div className="grid md:grid-cols-2 gap-8">
-                {/* Left - Form preview */}
-                <div className="space-y-4">
-                  <div className="h-3 w-24 bg-zinc-200 dark:bg-zinc-700 rounded-full" />
-                  <div className="space-y-3">
-                    <div className="h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl" />
-                    <div className="h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl" />
-                    <div className="h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl" />
-                  </div>
-                  <div className="h-3 w-32 bg-zinc-200 dark:bg-zinc-700 rounded-full mt-6" />
-                  <div className="h-24 bg-zinc-100 dark:bg-zinc-800 rounded-xl" />
-                </div>
+            {/* Glass Card Container */}
+            <div className="relative backdrop-blur-xl bg-white/60 dark:bg-zinc-900/60 rounded-3xl border border-white/40 dark:border-white/10 shadow-2xl p-10 md:p-14 overflow-hidden">
 
-                {/* Right - Resume preview */}
-                <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-lg p-6 border border-zinc-200 dark:border-zinc-700">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400" />
-                      <div className="space-y-2">
-                        <div className="h-4 w-32 bg-zinc-200 dark:bg-zinc-600 rounded" />
-                        <div className="h-3 w-24 bg-zinc-100 dark:bg-zinc-700 rounded" />
-                      </div>
+              {/* Floating Icons Background */}
+              <div className="absolute top-6 right-8 opacity-10 dark:opacity-5">
+                <FileText className="w-32 h-32 text-blue-500" />
+              </div>
+              <div className="absolute bottom-4 left-8 opacity-10 dark:opacity-5">
+                <Sparkles className="w-24 h-24 text-cyan-500" />
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-3 gap-6 md:gap-8 mb-10">
+                {[
+                  { value: "4", label: "Pro Templates", color: "from-cyan-500 to-teal-500" },
+                  { value: "< 5min", label: "Build Time", color: "from-purple-500 to-pink-500" },
+                  { value: "Free", label: "To Get Started", color: "from-amber-500 to-orange-500" },
+                ].map((stat, i) => (
+                  <div key={i} className="text-center group">
+                    <div className={`text-3xl md:text-4xl font-black bg-gradient-to-r ${stat.color} bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300`}>
+                      {stat.value}
                     </div>
-                    <div className="border-t border-zinc-100 dark:border-zinc-700 pt-4 space-y-2">
-                      <div className="h-3 w-full bg-zinc-100 dark:bg-zinc-700 rounded" />
-                      <div className="h-3 w-3/4 bg-zinc-100 dark:bg-zinc-700 rounded" />
-                      <div className="h-3 w-5/6 bg-zinc-100 dark:bg-zinc-700 rounded" />
-                    </div>
-                    <div className="border-t border-zinc-100 dark:border-zinc-700 pt-4 space-y-2">
-                      <div className="h-3 w-20 bg-blue-100 dark:bg-blue-900/30 rounded" />
-                      <div className="h-3 w-full bg-zinc-100 dark:bg-zinc-700 rounded" />
-                      <div className="h-3 w-2/3 bg-zinc-100 dark:bg-zinc-700 rounded" />
+                    <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                      {stat.label}
                     </div>
                   </div>
-                </div>
+                ))}
+              </div>
+
+              {/* Feature Pills */}
+              <div className="flex flex-wrap justify-center gap-3">
+                {[
+                  { icon: <Sparkles className="w-4 h-4" />, text: "AI-Powered Import", iconColor: "text-purple-500" },
+                  { icon: <Palette className="w-4 h-4" />, text: "Professional Templates", iconColor: "text-pink-500" },
+                  { icon: <Zap className="w-4 h-4" />, text: "Real-time Preview", iconColor: "text-amber-500" },
+                  { icon: <Download className="w-4 h-4" />, text: "PDF Export", iconColor: "text-blue-500" },
+                  { icon: <Cloud className="w-4 h-4" />, text: "Cloud Sync", iconColor: "text-cyan-500" },
+                  { icon: <Lock className="w-4 h-4" />, text: "Secure & Private", iconColor: "text-green-500" },
+                ].map((feature, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-zinc-800/80 border border-zinc-200/50 dark:border-zinc-700/50 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300 cursor-default"
+                  >
+                    <span className={feature.iconColor}>{feature.icon}</span>
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      {feature.text}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -248,12 +262,14 @@ export default function Home() {
               <p className="text-blue-100 mb-8 max-w-lg mx-auto">
                 Join thousands of job seekers who have landed their dream jobs with ResumeCraft.
               </p>
-              <Button
-                size="lg"
-                className="rounded-full px-8 h-14 text-base bg-white text-blue-600 hover:bg-blue-50 shadow-lg"
-              >
-                Get Started — It&apos;s Free
-              </Button>
+              <Link href="/create-resume">
+                <Button
+                  size="lg"
+                  className="rounded-full px-8 h-14 text-base bg-white text-blue-600 hover:bg-blue-50 shadow-lg"
+                >
+                  Get Started — It&apos;s Free
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -269,6 +285,20 @@ export default function Home() {
             <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
               ResumeCraft
             </span>
+          </div>
+          <div className="flex items-center gap-6">
+            <Link
+              href="/privacy"
+              className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/terms"
+              className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors"
+            >
+              Terms of Service
+            </Link>
           </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-500">
             © 2025 ResumeCraft. All rights reserved.

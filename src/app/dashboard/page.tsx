@@ -8,6 +8,7 @@ import { FileText, LogOut, User, Home } from "lucide-react";
 import Link from "next/link";
 import { ResumeCard } from "@/components/dashboard/ResumeCard";
 import { CreateNewButton } from "@/components/dashboard/CreateNewButton";
+import { DeleteAccountButton } from "@/components/dashboard/DeleteAccountButton";
 import { Button } from "@/components/ui/button";
 
 export default async function DashboardPage() {
@@ -93,8 +94,8 @@ export default async function DashboardPage() {
                             My Resumes
                         </h1>
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${process.env.NEXT_RUNTIME === 'edge'
-                                ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20"
-                                : "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20"
+                            ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20"
+                            : "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20"
                             }`}>
                             {process.env.NEXT_RUNTIME === 'edge' ? 'Edge Runtime' : 'Node Runtime'}
                         </span>
@@ -116,6 +117,17 @@ export default async function DashboardPage() {
                             updatedAt={resume.updated_at}
                         />
                     ))}
+                </div>
+
+                {/* Account Settings */}
+                <div className="mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800">
+                    <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">
+                        Account Settings
+                    </h2>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+                        Manage your account preferences and data
+                    </p>
+                    <DeleteAccountButton userEmail={user.email || ""} />
                 </div>
             </main>
         </div>
